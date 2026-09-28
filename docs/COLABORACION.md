@@ -17,9 +17,9 @@ budget-tracker-front/   # Flutter
 ```
 
 ```bash
-git clone <url-specs>  budget-tracker-specs
-git clone <url-back>   budget-tracker-back
-git clone <url-front>  budget-tracker-front
+git clone https://github.com/rojb/budget-tracker-specs.git
+git clone https://github.com/rojb/budget-tracker-back.git
+git clone https://github.com/rojb/budget-tracker-front.git
 ```
 
 Registrar el store de OpenSpec y crear el workset que une los tres repos:

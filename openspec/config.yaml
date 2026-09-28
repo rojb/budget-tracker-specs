@@ -10,7 +10,7 @@ context: |
     - budget-tracker-specs: this repo. OpenSpec store, openapi.yaml (the API contract), PRD.md,
       ALCANCE.md, PRD-ux-spec.md, design/ (OpenPencil source).
     - budget-tracker-back: NestJS. Classic per-feature modules (module/controller/service/dto/
-      entities), NOT hexagonal architecture. DTOs are the API contract; entities are the DB
+      entities), NOT hexagonal architecture. DTOs are the API contract; entities (TypeORM) are the DB
       model; controllers never return entities directly, only DTOs.
     - budget-tracker-front: Flutter. packages/ui is a local package with tokens/atoms/molecules/
       organisms; its widgets are StatelessWidget and purely presentational — packages/ui never

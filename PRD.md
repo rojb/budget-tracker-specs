@@ -326,10 +326,10 @@ endpoints con Swagger UI o Prism — en vez de con una suite de tests automatiza
   zona del dispositivo. La **atribución de una transacción a un mes presupuestario** se
   resuelve en la zona horaria del plan, para que un movimiento del día 31 a las 23:30 no
   caiga en el mes equivocado.
-- **Persistencia:** Prisma sobre PostgreSQL, levantado con `docker-compose`. Prisma aporta
-  migraciones rápidas y un cliente tipado. *Salvaguarda:* si la puesta en marcha de Docker se
-  complica, se cambia el proveedor a SQLite — en Prisma es una línea del `datasource` — y se
-  documenta la razón. La evaluación es local y no hay despliegue, así que ningún criterio de
+- **Persistencia:** TypeORM sobre PostgreSQL, levantado con `docker-compose`. TypeORM se
+  integra de forma nativa con NestJS (`@nestjs/typeorm`) y define el modelo como entidades por
+  feature, con migraciones generadas por su CLI. *Salvaguarda:* si la puesta en marcha de Docker
+  se complica, se cambia el `type` de la conexión a `sqlite` y se documenta la razón. La evaluación es local y no hay despliegue, así que ningún criterio de
   la cátedra depende del motor.
 - **Gestión de estado en Flutter:** Riverpod, **solo si al menos una de las dos personas ya lo
   usó**. En caso contrario, un repositorio simple con `ChangeNotifier`.
@@ -438,3 +438,4 @@ declarados tienen prioridad sobre cualquier requisito de presentación.
 | 1.5 | 2026-09-28 | Equipo | FR-11: la fórmula de *Ready to Assign* resta también lo asignado a meses futuros, que es lo que ya exigía FR-10 y la fórmula anterior omitía. El diseño pasa a un conjunto de datos único y verificable (odd/tasks/canonical-dataset.md) |
 | 1.6 | 2026-09-28 | Equipo | Se agrega FR-41 (Foto de meta, Should Have): subir, cambiar o quitar una foto por meta desde la galería, la cámara o un set sugerido, almacenada por el backend con límite de tamaño y formato y redimensionada server-side; sin foto la tarjeta usa un color. §9 documenta el almacenamiento de imágenes (disco local u object storage, sin CDN). El diseño agrega la pantalla 50 (Foto de la meta) y separa el toast «Recalculado» de 12 en su propio estado posterior al guardado (pantalla 49) |
 | 1.7 | 2026-09-28 | Equipo | FR-03 aclara que las cuentas archivadas se listan aparte y pueden restaurarse. El diseño cierra tres brechas encontradas por el usuario: la lista de cuentas archivadas (pantalla 51, con Restaurar), el selector de grupo como hoja con radio al crear o editar un sobre (pantalla 52, sin buscador porque solo hay 4 grupos) y el estado de monto propio de "Asignar dinero" con la calculadora visible (pantalla 53). También corrige la etiqueta "Súper" a "Supermercado" en 03, por la convención de nombres |
+| 1.8 | 2026-09-28 | Equipo | Persistencia pasa de Prisma a TypeORM (integración nativa con NestJS, entidades por feature). Reparto del equipo por feature full-stack (ver docs/ROADMAP.md y docs/COLABORACION.md). Sin archivos de test: verificación manual |
