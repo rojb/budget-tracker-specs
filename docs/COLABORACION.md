@@ -78,12 +78,39 @@ en los dos repos de código que toque el change:
 rrg-47-add-envelopes
 ```
 
-**Commits:** Conventional Commits, con el id del issue:
+**Commits:** Conventional Commits, con el id del issue. Sin líneas de atribución a IA.
+
+### 3.1 Trazabilidad SDD en el historial (obligatorio)
+
+El historial de git tiene que **demostrar el ciclo de SDD con OpenSpec**. Cada fase es un commit
+propio; nunca se mezclan fases en un mismo commit.
+
+**Repo `budget-tracker-specs`** (rama `rrg-NN-<change>`), un commit por fase:
 
 ```
-feat(envelopes): add group reorder endpoint (RRG-47)
-fix(envelopes): correct template seed amounts (RRG-47)
+docs(openspec): add specs for add-envelopes (RRG-47)
+docs(openspec): add design for add-envelopes (RRG-47)
+docs(openspec): add tasks for add-envelopes (RRG-47)
+docs(openspec): mark add-envelopes tasks complete (RRG-47)
+docs(openspec): archive add-envelopes (RRG-47)          ← después del merge
 ```
+
+- Antes de cada commit de fase: `openspec status --change <change>` y `openspec validate <change>`.
+- En "tasks complete", cada tarea tildada lleva el hash corto del commit de código que la
+  implementó (ej. `- [x] 1.4 Wire TypeORM module — back cf63e3e`).
+
+**Repos de código** (misma rama `rrg-NN-<change>`), **un commit por tarea** de `tasks.md`, en
+orden, con el número de tarea:
+
+```
+feat(envelopes): add group reorder endpoint (RRG-47, task 2.3)
+feat(ui): add EnvelopeRow component (RRG-47, task 3.1)
+```
+
+Con asistente de IA: `/opsx:propose`, `/opsx:apply`, `/opsx:archive` (skills de OpenSpec en
+`.claude/`) siguen este mismo flujo; la regla de commits aplica igual.
+
+Ejemplo de referencia: RRG-40 `scaffold-backend`.
 
 ---
 
