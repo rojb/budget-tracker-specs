@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "openpencil": {
+      "type": "stdio",
+      "command": "${USERPROFILE}/.openpencil/desktop/openpencil-desktop.exe",
+      "args": ["--mcp", "design/app.op"]
+    }
+  }
+}

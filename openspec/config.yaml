@@ -1,0 +1,84 @@
+schema: spec-driven
+
+# Project context
+context: |
+  Product: budget-tracker, an envelope-method / zero-based personal budgeting app (YNAB-style),
+  built as a 2-person team project for TAP (2026). Source of truth for scope and requirements:
+  PRD.md; executive summary: ALCANCE.md; UI/UX source of truth: PRD-ux-spec.md.
+
+  Three repos, one owner per change, split by feature (full-stack), not by layer:
+    - budget-tracker-specs: this repo. OpenSpec store, openapi.yaml (the API contract), PRD.md,
+      ALCANCE.md, PRD-ux-spec.md, design/ (OpenPencil source).
+    - budget-tracker-back: NestJS. Classic per-feature modules (module/controller/service/dto/
+      entities), NOT hexagonal architecture. DTOs are the API contract; entities are the DB
+      model; controllers never return entities directly, only DTOs.
+    - budget-tracker-front: Flutter. packages/ui is a local package with tokens/atoms/molecules/
+      organisms; its widgets are StatelessWidget and purely presentational — packages/ui never
+      imports the API client. Widgetbook catalogs every packages/ui component. lib/features/
+      <feature> holds the container widgets that call the generated api_client (generated from
+      openapi.yaml) and wire it to packages/ui widgets. A Prism mock server, generated from
+      openapi.yaml, serves the frontend during development before the real backend endpoint
+      exists.
+
+  Contract-first: openapi.yaml in budget-tracker-specs is the source of truth for the API.
+  Contract changes go through a PR approved by both developers before merging. budget-tracker-back
+  CI exports its actual spec with @nestjs/swagger and diffs it against openapi.yaml with oasdiff
+  to catch drift.
+
+  UI source of truth: PRD-ux-spec.md is binding for anything visual. §7 (design tokens: color,
+  Urbanist typography, radii, elevation) is the only source for token values — never invent new
+  ones. §8 (component inventory) lists every packages/ui component and its variants; screens use
+  only these components. §6.1 (cross-screen conventions: top bar, destructive actions, BottomNav,
+  editable-field rows, date grouping, sizes, selectors, search) governs how any new screen is
+  built. §9.1 is the screen inventory (52 screens, numbered, each mapped to its flow and FRs) —
+  use these screen numbers when referencing UI work.
+
+  Ownership: docs/ROADMAP.md maps every OpenSpec change to a single owner (Ruben or
+  nathaliascode) and its dependencies. Operational workflow (repo setup, branch naming, contract
+  and packages/ui protocols, sync ritual) is in docs/COLABORACION.md.
+
+  Hard rule — no test files: neither repo contains test files of any kind — no *.spec.ts/
+  *.test.ts in budget-tracker-back, no *_test.dart or golden tests in budget-tracker-front, no
+  test/ folders. nest-cli.json has generateOptions.spec: false; scaffold-generated default test
+  files are deleted. OpenSpec spec.md files are unaffected by this rule — they describe behavior,
+  not test code, and are always written. Verification of every change is manual: Widgetbook
+  compared against design/screens/NN-*.png for UI, Swagger UI or Prism against openapi.yaml for
+  the API. Never propose, write, or leave a test-writing task in any tasks.md.
+
+# Per-artifact rules
+rules:
+  proposal:
+    - Must state Owner (Ruben or nathaliascode, per docs/ROADMAP.md).
+    - Must state Repos touched (any of budget-tracker-specs, budget-tracker-back,
+      budget-tracker-front).
+    - Must state FRs covered (FR-NN ids from PRD.md).
+    - Must state Screens (screen numbers from PRD-ux-spec.md §9.1, if the change has UI).
+    - Must state Depends on (other OpenSpec change names this one needs merged first, per
+      docs/ROADMAP.md).
+    - Must state the Linear issue id (or TBD if not yet created).
+  specs:
+    - Write in English regardless of conversation language.
+    - Describe behavior and scenarios only — never reference test files, test frameworks, or
+      "verified by test"; verification is manual (Widgetbook / Swagger UI / Prism).
+    - Reuse an existing capability path under openspec/specs/ instead of introducing a
+      near-duplicate when the change modifies behavior already owned by another capability.
+  design:
+    - Write in English regardless of conversation language.
+    - List every endpoint the change adds or modifies, referencing the relevant path/operation
+      in openapi.yaml (create the openapi.yaml entries as part of the change if they do not
+      exist yet).
+    - List every UI component the change uses or adds, by name, from packages/ui (per
+      PRD-ux-spec.md §8); flag any new component that needs a packages/ui PR reviewed by the
+      other dev (see docs/COLABORACION.md §5).
+  tasks:
+    - Write in English regardless of conversation language.
+    - Group tasks under three headings, in this order: [specs], [back], [front] — omit a
+      heading only if the change has no work in that repo.
+    - If the change introduces or modifies an API contract, the first [specs] task must be
+      updating openapi.yaml (and getting the two-dev PR approval per docs/COLABORACION.md §4)
+      before any [back]/[front] task that depends on it.
+    - Never include a task to write test files, set up a test framework, or add test coverage
+      of any kind (see the no-test-files rule in context above).
+    - The final task must be a manual verification checklist: Widgetbook vs.
+      design/screens/NN-*.png for each screen touched, and Swagger UI/Prism vs. openapi.yaml for
+      each endpoint touched.
