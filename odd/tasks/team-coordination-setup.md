@@ -31,12 +31,12 @@ Out: scaffolding back/front code (that is the first foundation change's work), G
 - [x] T1 Draft roadmap → docs/ROADMAP.md (16 changes; effort Ruben 16 / nathaliascode 17): features → OpenSpec changes, dependencies, phases, balanced owner assignment (route: delegated — needs PRD + UX spec + odd docs, 4+ files)
 - [x] T2 User approves roadmap/assignment — Ruben: all Phase 0 + add-envelopes, add-transactions, add-transaction-editing-and-filters, add-envelope-goals (18); nathaliascode: add-budget-calc-engine, add-plans-and-accounts, add-payees, add-monthly-assignment, add-plan-sharing, add-reports, add-account-transfers (15). Ruben does scaffold-backend + api-contract-base first to unblock calc engine.
 - [x] T3 OpenSpec config.yaml context + rules, collaboration guide, PRD/ALCANCE split update, change proposals (route: delegated writer, 2+ files)
-- [ ] T4 git init specs repo + register OpenSpec store `budget-tracker-specs` (route: inline, state commands)
+- [x] T4 git init specs repo (main) + register OpenSpec store `budget-tracker-specs`; fixed config.yaml YAML parse error (unquoted ": " in rules). Evidence: openspec doctor ok, rules injected in `openspec instructions tasks`.
 - [ ] T5 Linear: project, labels, milestones, one issue per change with owner (route: inline MCP; requires user confirmation; nathaliascode must be invited)
 
 ## Acceptance criteria
 - Each dev can read one doc and know: their changes, order, dependencies, how to sync contract/UI.
-- `openspec validate --all` passes on the specs repo.
+- `openspec validate --all`: foundation changes (skip_specs) pass; 12 feature changes fail only with "no deltas" until owners write specs (expected).
 - Every OpenSpec change has a matching Linear issue with assignee (or pending invite noted).
 
 ## Checks

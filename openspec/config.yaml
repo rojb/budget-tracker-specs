@@ -30,7 +30,7 @@ context: |
   ones. §8 (component inventory) lists every packages/ui component and its variants; screens use
   only these components. §6.1 (cross-screen conventions: top bar, destructive actions, BottomNav,
   editable-field rows, date grouping, sizes, selectors, search) governs how any new screen is
-  built. §9.1 is the screen inventory (52 screens, numbered, each mapped to its flow and FRs) —
+  built. §9.1 is the screen inventory (53 screens, numbered, each mapped to its flow and FRs) —
   use these screen numbers when referencing UI work.
 
   Ownership: docs/ROADMAP.md maps every OpenSpec change to a single owner (Ruben or
@@ -72,13 +72,13 @@ rules:
       other dev (see docs/COLABORACION.md §5).
   tasks:
     - Write in English regardless of conversation language.
-    - Group tasks under three headings, in this order: [specs], [back], [front] — omit a
-      heading only if the change has no work in that repo.
+    - "Group tasks under three headings, in this order: [specs], [back], [front]. Omit a
+      heading only if the change has no work in that repo."
     - If the change introduces or modifies an API contract, the first [specs] task must be
       updating openapi.yaml (and getting the two-dev PR approval per docs/COLABORACION.md §4)
       before any [back]/[front] task that depends on it.
     - Never include a task to write test files, set up a test framework, or add test coverage
       of any kind (see the no-test-files rule in context above).
-    - The final task must be a manual verification checklist: Widgetbook vs.
+    - "The final task must be a manual verification checklist: Widgetbook vs.
       design/screens/NN-*.png for each screen touched, and Swagger UI/Prism vs. openapi.yaml for
-      each endpoint touched.
+      each endpoint touched."
