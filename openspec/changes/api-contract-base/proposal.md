@@ -43,4 +43,4 @@ None.
 - Screens: none
 - Depends on: scaffold-backend (for CI wiring only)
 - Size: S
-- Linear: TBD
+- Linear: [RRG-42](https://linear.app/rgonaut/issue/RRG-42)

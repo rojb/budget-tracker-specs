@@ -47,4 +47,4 @@ None.
 - Screens: 22, 23, 05, 40, 50, 24, 01
 - Depends on: add-envelopes, add-transactions
 - Size: L
-- Linear: TBD
+- Linear: [RRG-52](https://linear.app/rgonaut/issue/RRG-52)

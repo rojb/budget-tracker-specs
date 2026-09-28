@@ -41,4 +41,4 @@ None.
 - Screens: 02, 03, 53, 04, 25
 - Depends on: add-envelopes, add-transactions, add-budget-calc-engine
 - Size: L
-- Linear: TBD
+- Linear: [RRG-51](https://linear.app/rgonaut/issue/RRG-51)

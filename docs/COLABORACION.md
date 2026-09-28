@@ -75,14 +75,14 @@ puede variar entre versiones de OpenSpec.
 en los dos repos de código que toque el change:
 
 ```
-rrg-12-add-envelopes
+rrg-47-add-envelopes
 ```
 
 **Commits:** Conventional Commits, con el id del issue:
 
 ```
-feat(envelopes): add group reorder endpoint (RRG-12)
-fix(envelopes): correct template seed amounts (RRG-12)
+feat(envelopes): add group reorder endpoint (RRG-47)
+fix(envelopes): correct template seed amounts (RRG-47)
 ```
 
 ---
@@ -150,6 +150,26 @@ interfaz de `CalculationService` (`add-budget-calc-engine`), la entidad `Plan` (
 
 ## 8. Linear
 
-- Proyecto: <LINEAR_PROJECT_URL>
+- Proyecto: https://linear.app/rgonaut/project/budget-tracker-d6dfa5a70835
 - Un issue por change de OpenSpec, con el owner de `docs/ROADMAP.md` asignado.
 - Team: Rrgonaut.
+- Linear sugiere el nombre de rama con `Ctrl/Cmd + Shift + .` ("Copy git branch name"), con prefijo de usuario (ej. `rubenjustiniano96/rrg-47-add-envelopes`). Vale cualquiera de los dos formatos: Linear enlaza por el id `RRG-NN`.
+
+| Issue | Change | Dueño/a |
+|---|---|---|
+| RRG-40 | scaffold-backend | Ruben |
+| RRG-41 | scaffold-frontend | Ruben |
+| RRG-42 | api-contract-base | Ruben |
+| RRG-43 | ui-foundation | Ruben |
+| RRG-44 | add-auth | Ruben |
+| RRG-45 | add-budget-calc-engine | nathaliascode |
+| RRG-46 | add-plans-and-accounts | nathaliascode |
+| RRG-47 | add-envelopes | Ruben |
+| RRG-48 | add-payees | nathaliascode |
+| RRG-49 | add-transactions | Ruben |
+| RRG-50 | add-transaction-editing-and-filters | Ruben |
+| RRG-51 | add-monthly-assignment | nathaliascode |
+| RRG-52 | add-envelope-goals | Ruben |
+| RRG-53 | add-plan-sharing | nathaliascode |
+| RRG-54 | add-reports | nathaliascode |
+| RRG-55 | add-account-transfers | nathaliascode |

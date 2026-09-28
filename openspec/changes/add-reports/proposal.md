@@ -38,4 +38,4 @@ None.
 - Screens: 17
 - Depends on: add-transactions, add-envelopes
 - Size: M
-- Linear: TBD
+- Linear: [RRG-54](https://linear.app/rgonaut/issue/RRG-54)

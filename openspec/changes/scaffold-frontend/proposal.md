@@ -36,4 +36,4 @@ None.
 - Screens: none
 - Depends on: none
 - Size: S
-- Linear: TBD
+- Linear: [RRG-41](https://linear.app/rgonaut/issue/RRG-41)

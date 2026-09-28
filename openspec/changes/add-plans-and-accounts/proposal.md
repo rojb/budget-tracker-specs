@@ -45,4 +45,4 @@ None.
 - Screens: 16, 20, 33, 06, 13, 14, 28, 42, 48, 51, 37
 - Depends on: add-auth, api-contract-base
 - Size: L
-- Linear: TBD
+- Linear: [RRG-46](https://linear.app/rgonaut/issue/RRG-46)

@@ -43,4 +43,4 @@ None.
 - Screens: none directly (supports all 52 screens in UX spec §9.1)
 - Depends on: scaffold-frontend
 - Size: M
-- Linear: TBD
+- Linear: [RRG-43](https://linear.app/rgonaut/issue/RRG-43)

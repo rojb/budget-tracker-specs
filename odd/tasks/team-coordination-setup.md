@@ -32,7 +32,7 @@ Out: scaffolding back/front code (that is the first foundation change's work), G
 - [x] T2 User approves roadmap/assignment — Ruben: all Phase 0 + add-envelopes, add-transactions, add-transaction-editing-and-filters, add-envelope-goals (18); nathaliascode: add-budget-calc-engine, add-plans-and-accounts, add-payees, add-monthly-assignment, add-plan-sharing, add-reports, add-account-transfers (15). Ruben does scaffold-backend + api-contract-base first to unblock calc engine.
 - [x] T3 OpenSpec config.yaml context + rules, collaboration guide, PRD/ALCANCE split update, change proposals (route: delegated writer, 2+ files)
 - [x] T4 git init specs repo (main) + register OpenSpec store `budget-tracker-specs`; fixed config.yaml YAML parse error (unquoted ": " in rules). Evidence: openspec doctor ok, rules injected in `openspec instructions tasks`.
-- [ ] T5 Linear: project, labels, milestones, one issue per change with owner (route: inline MCP; requires user confirmation; nathaliascode must be invited)
+- [x] T5 Linear: project budget-tracker (P-RRG-2), milestones Fase 0-6, labels foundation/Feature(existing)/size S-M-L, issues RRG-40..RRG-55 with blocked-by; Ruben assigned; nathaliascode issues (RRG-45,46,48,51,53,54,55) unassigned pending workspace invite. IDs written into proposals + docs/COLABORACION.md §8.
 
 ## Acceptance criteria
 - Each dev can read one doc and know: their changes, order, dependencies, how to sync contract/UI.
@@ -44,4 +44,5 @@ Out: scaffolding back/front code (that is the first foundation change's work), G
 - TDD: not applicable (documentation/planning only).
 
 ## Progress
+- Done 2026-09-28. Pending (user-owned): push specs repo to GitHub, invite nathaliascode to Linear then assign her 7 issues.
 - Exploration done (PRD, UX spec, design, openspec state, Linear workspace).

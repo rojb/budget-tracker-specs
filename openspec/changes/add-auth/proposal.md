@@ -40,4 +40,4 @@ None.
 - Screens: 18, 19, 34
 - Depends on: api-contract-base, ui-foundation, scaffold-backend
 - Size: M
-- Linear: TBD
+- Linear: [RRG-44](https://linear.app/rgonaut/issue/RRG-44)

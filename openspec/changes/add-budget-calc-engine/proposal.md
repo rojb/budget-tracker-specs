@@ -50,4 +50,4 @@ None.
 - Screens: none (internal engine; feeds 02, 03, 04, 25, 46, 53)
 - Depends on: api-contract-base, scaffold-backend
 - Size: L
-- Linear: TBD
+- Linear: [RRG-45](https://linear.app/rgonaut/issue/RRG-45)

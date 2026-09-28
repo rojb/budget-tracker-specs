@@ -39,4 +39,4 @@ None.
 - Screens: none
 - Depends on: none
 - Size: S
-- Linear: TBD
+- Linear: [RRG-40](https://linear.app/rgonaut/issue/RRG-40)

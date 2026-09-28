@@ -37,4 +37,4 @@ None.
 - Screens: 29
 - Depends on: add-plans-and-accounts
 - Size: S
-- Linear: TBD
+- Linear: [RRG-55](https://linear.app/rgonaut/issue/RRG-55)

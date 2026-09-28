@@ -43,4 +43,4 @@ None.
 - Screens: 02, 31, 32, 52, 44, 43, 35, 46
 - Depends on: add-plans-and-accounts, add-budget-calc-engine
 - Size: L
-- Linear: TBD
+- Linear: [RRG-47](https://linear.app/rgonaut/issue/RRG-47)

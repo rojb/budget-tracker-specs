@@ -41,4 +41,4 @@ None.
 - Screens: 12, 49, 27, 11
 - Depends on: add-transactions
 - Size: M
-- Linear: TBD
+- Linear: [RRG-50](https://linear.app/rgonaut/issue/RRG-50)
