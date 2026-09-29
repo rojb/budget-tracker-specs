@@ -21,9 +21,10 @@ consistent and stops feature owners from hand-rolling one-off widgets.
 
 ### New Capabilities
 
-None — this ships a reusable component library (implementation detail of `packages/ui`), not an
-end-user-facing capability with its own requirements/scenarios. Each feature's spec covers the
-behavior of the screens that use these components.
+- `ui-design-system`: design tokens (color, Urbanist typography, shape), the base component
+  library with its variants and states (including SaveBar swipe-to-confirm and Toast behavior),
+  and the shared money formatter. Each feature's spec still covers the behavior of the screens
+  that use these components.
 
 ### Modified Capabilities
 
