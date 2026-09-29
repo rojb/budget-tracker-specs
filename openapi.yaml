@@ -27,7 +27,93 @@ security:
 tags:
   - name: Health
     description: Service liveness.
+  - name: Auth
+    description: Account registration and login (public).
+  - name: Users
+    description: The authenticated user.
 paths:
+  /auth/register:
+    post:
+      tags: [Auth]
+      operationId: register
+      summary: Create an account
+      description: |
+        Creates a user and returns a session. The email is trimmed and lowercased; it must be
+        unique. The password is stored only as an Argon2id hash and is never returned.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: The account was created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthSession'
+        '400':
+          $ref: '#/components/responses/ValidationFailed'
+        '409':
+          description: An account with that email already exists.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                statusCode: 409
+                message: Email already registered
+                error: Conflict
+  /auth/login:
+    post:
+      tags: [Auth]
+      operationId: login
+      summary: Sign in
+      description: |
+        Exchanges credentials for a session. Every credential failure returns the same generic
+        401, so the response never reveals whether the email exists.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: The credentials are valid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthSession'
+        '400':
+          $ref: '#/components/responses/ValidationFailed'
+        '401':
+          description: Wrong email or password.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                statusCode: 401
+                message: Invalid email or password
+                error: Unauthorized
+  /users/me:
+    get:
+      tags: [Users]
+      operationId: getCurrentUser
+      summary: Get the authenticated user
+      responses:
+        '200':
+          description: The user the bearer token was issued for.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
   /health:
     get:
       tags: [Health]
@@ -135,6 +221,66 @@ components:
         error:
           type: string
           enum: [Bad Request]
+    RegisterRequest:
+      type: object
+      required: [name, email, password]
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 80
+          examples: [Sofía Martínez]
+        email:
+          type: string
+          format: email
+          maxLength: 254
+          description: Stored lowercase; unique across accounts.
+          examples: [sofia@correo.com]
+        password:
+          type: string
+          minLength: 8
+          maxLength: 128
+          format: password
+    LoginRequest:
+      type: object
+      required: [email, password]
+      additionalProperties: false
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 254
+          examples: [sofia@correo.com]
+        password:
+          type: string
+          minLength: 1
+          maxLength: 128
+          format: password
+    User:
+      type: object
+      description: A person with an account. Never carries credentials.
+      required: [id, name, email, createdAt]
+      properties:
+        id:
+          $ref: '#/components/schemas/Uuid'
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        createdAt:
+          $ref: '#/components/schemas/Timestamp'
+    AuthSession:
+      type: object
+      description: A signed JWT access token (default expiry 7 days, no refresh token) and its user.
+      required: [accessToken, user]
+      properties:
+        accessToken:
+          type: string
+          description: 'Sent as `Authorization: Bearer <accessToken>`.'
+        user:
+          $ref: '#/components/schemas/User'
     Uuid:
       type: string
       format: uuid
