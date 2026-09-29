@@ -20,9 +20,10 @@ between the contract and the actual Nest implementation.
 
 ### New Capabilities
 
-None — this defines the shared API contract document and CI wiring, not an application
-capability with its own requirements/scenarios. Each feature change owns the spec for its own
-endpoints as it adds them to `openapi.yaml`.
+- `api-conventions`: cross-cutting rules every endpoint follows (error shape, bearer auth, money
+  as integer minor units, UUIDs, timestamps, month keys, camelCase, offset pagination, validation
+  errors, contract-first drift rule). Each feature change still owns the spec for its own
+  endpoints as it adds them to `openapi.yaml`.
 
 ### Modified Capabilities
 
