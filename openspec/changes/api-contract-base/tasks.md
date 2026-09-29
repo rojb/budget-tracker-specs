@@ -15,4 +15,4 @@
 ## 3. Verification
 
 - [x] 3.1 Offline verification: `npx @redocly/cli lint openapi.yaml` has no errors; `npm run lint` and `npm run build` pass; `npm run openapi:export` works without Docker; the drift script passes against the contract and fails against an altered copy; a glob for `*.spec.ts`/`*.test.ts`/`test/` (excluding `node_modules`) in both repos returns nothing. (verified against back 2f635b9 and specs 97775ef)
-- [ ] 3.2 Live verification (needs Docker/Postgres): Swagger UI at `/docs` shows `GET /health` matching `openapi.yaml` (tag, public, `{ status: "ok" }` response); `curl GET /health` returns `{ "status": "ok" }`.
+- [x] 3.2 Live verification (needs Docker/Postgres): Swagger UI at `/docs` shows `GET /health` matching `openapi.yaml` (tag, public, `{ status: "ok" }` response); `curl GET /health` returns `{ "status": "ok" }`. (verified 2026-09-29 on back main b55d50d: GET /health 200 {"status":"ok"}; /docs 200 Swagger UI; /docs-json /health tag Health, security [], 200)
