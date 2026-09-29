@@ -126,13 +126,22 @@ the 350 x 64 floating capsule and it queues rather than replaces.
 border; the Error state is a prop with a message line under the pill. Decoration is fully custom
 (no underline, filled `surface`, radius 30).
 
-**AmountCapsule: two shapes with a `CustomPainter`-free join.** The joined-blob look is built from
-two rounded containers (64 dp currency lobe, value lobe) overlapping a small rounded neck rect in the
-same lavender, keeping it a plain widget tree. The value lobe width follows the text.
+**Joined shape (reopened after verification).** The first cut approximated the concave blob with a
+rect neck and a pill tray; verification against the design renders showed both deviate. A single
+reusable helper in `packages/ui/lib/src/tokens/joined_shape.dart` is a Dart port of
+`design/shapes.js#blobPath`: given lobes (`x`, `w`, `r`) of equal height and a `neck` depth, it builds
+one closed `Path` whose top and bottom edges leave each lobe, dip concavely by `neck` at the midpoint
+between lobes (two cubic Beziers per waist) and rise onto the next lobe. It is exposed as a
+`CustomClipper<Path>`, and a `CustomPainter` that fills, strokes and shadows the path. AmountCapsule
+(lobes 64 + gap 6 + value width, r 32, neck 9) and NavCluster (one lobe per circle, circle + 12 wide,
+r half, gap -4, neck 10) both use it, and a later JoinedCard can reuse it. Widgets stay presentational.
 
-**NavCluster: glass tray via `BackdropFilter`.** The tray is a `ClipRRect` + `BackdropFilter(blur 24)`
-with `#FFFFFF8C` fill and a 1 px `#FFFFFFCC` border; circles sit on top. The exact concave "neck"
-blob of the design render is approximated by a rounded pill tray (documented difference).
+**AmountCapsule: one lavender joined shape.** The lavender fill is the joined-shape path painted
+behind a white 48 dp badge and the value text; the value lobe width follows the text.
+
+**NavCluster: glass tray via `BackdropFilter`.** The tray is the joined-shape path used as clip for
+`BackdropFilter(blur 24)`, with `#FFFFFF8C` fill, a 1 px `#FFFFFFCC` stroke and the shadow; circles sit
+on top.
 
 **Touch targets.** Visual sizes follow the design; each interactive widget wraps its visual in a
 `ConstrainedBox(minWidth/minHeight: 48)` hit area (Chip 34 stays 34 visually, 48 hit).
@@ -149,8 +158,8 @@ links use the `?path=` query of Widgetbook (`?path=atoms/chip/default`).
 - [Variable font weights ignored by the engine] -> text styles set `fontVariations` explicitly and
   the screenshot pass checks Light 300 vs Medium 500 visually.
 - [Icon package drift] -> icons only through `UiIcons`; fallback to Material outlined documented.
-- [Joined-blob shapes approximated] -> differences from the design render are listed in the final
-  verification and can be refined when a screen needs the exact blob.
+- [Joined-blob shapes approximated] -> resolved by the reusable joined-shape helper (tasks 1.8, 1.9);
+  device screenshots are compared against the design renders.
 - [`intl` es_AR grouping differs from spec on some SDKs] -> the manual checklist compares the four
   spec strings exactly (`$ 48.200`, `US$ 1.250,50`, `€ 980,00`, `−US$ 12,50`).
 - [Change exceeds ~400 changed lines] -> accepted; commits stay one per task and cohesive.
