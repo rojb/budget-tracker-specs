@@ -1,0 +1,208 @@
+openapi: 3.1.0
+info:
+  title: Budget Tracker API
+  version: 0.1.0
+  description: |
+    Source of truth for the Budget Tracker HTTP API (contract-first). Changes go through a PR
+    approved by both developers (docs/COLABORACION.md section 4).
+
+    Conventions (capability `api-conventions`):
+    - JSON property names are camelCase.
+    - Money is an integer in the minor units of the plan's currency, in fields named
+      `<thing>Minor`. The currency (ARS, USD or EUR, immutable per plan) is a property of the plan
+      and is never repeated per amount. Formatting is the client's job; the API never returns
+      formatted money strings. Responses that must not reveal financial state omit amounts.
+    - Identifiers are UUID v4 strings; instants are ISO-8601 date-times with offset; budget months
+      are `YYYY-MM` keys.
+    - Every operation requires a bearer JWT unless it declares `security: []`.
+    - List endpoints paginate with `page` (1-based) and `pageSize` (default 20, max 100) and return
+      `{ items, page, pageSize, total }`.
+    - Errors use `{ statusCode, message, error }`; validation failures are 400 with `message` as
+      an array of strings.
+servers:
+  - url: http://localhost:3000
+    description: Local development
+security:
+  - bearerAuth: []
+tags:
+  - name: Health
+    description: Service liveness.
+paths:
+  /health:
+    get:
+      tags: [Health]
+      operationId: getHealth
+      summary: Liveness check
+      security: []
+      responses:
+        '200':
+          description: The service is up.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthStatus'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    Page:
+      name: page
+      in: query
+      description: 1-based page number.
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    PageSize:
+      name: pageSize
+      in: query
+      description: Items per page.
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+  responses:
+    Unauthorized:
+      description: Missing or invalid bearer token.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            statusCode: 401
+            message: Unauthorized
+            error: Unauthorized
+    NotFound:
+      description: The resource does not exist.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            statusCode: 404
+            message: Resource not found
+            error: Not Found
+    ValidationFailed:
+      description: The request failed validation; `message` lists one entry per violated constraint.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ValidationError'
+          example:
+            statusCode: 400
+            message:
+              - amountMinor must be an integer number
+            error: Bad Request
+  schemas:
+    HealthStatus:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [ok]
+    Error:
+      type: object
+      required: [statusCode, message, error]
+      properties:
+        statusCode:
+          type: integer
+          description: Equal to the HTTP status.
+        message:
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                type: string
+        error:
+          type: string
+          description: Short HTTP reason phrase.
+    ValidationError:
+      type: object
+      required: [statusCode, message, error]
+      properties:
+        statusCode:
+          type: integer
+          enum: [400]
+        message:
+          type: array
+          items:
+            type: string
+        error:
+          type: string
+          enum: [Bad Request]
+    Uuid:
+      type: string
+      format: uuid
+      description: UUID v4 identifier.
+    Timestamp:
+      type: string
+      format: date-time
+      description: ISO-8601 instant with UTC offset, e.g. 2026-09-29T14:30:00Z.
+    MonthKey:
+      type: string
+      pattern: '^\d{4}-(0[1-9]|1[0-2])$'
+      description: Budget month as YYYY-MM.
+      examples: ['2026-09']
+    CurrencyCode:
+      type: string
+      description: Currency of a plan. Chosen at plan creation and immutable afterwards (FR-40).
+      enum: [ARS, USD, EUR]
+    Currency:
+      type: object
+      description: |
+        Currency of a plan, one of exactly three options.
+        ARS: symbol `$`, name `pesos`, 0 minor units.
+        USD: symbol `US$`, name `dólares`, 2 minor units.
+        EUR: symbol `€`, name `euros`, 2 minor units.
+        Clients format amounts (es-AR: `.` thousands, `,` decimal, `−` before the symbol for
+        negatives); the API never returns pre-formatted money strings.
+      required: [code, symbol, name, minorUnits]
+      properties:
+        code:
+          $ref: '#/components/schemas/CurrencyCode'
+        symbol:
+          type: string
+          enum: ['$', 'US$', '€']
+        name:
+          type: string
+          description: Spanish display name shown next to the symbol, e.g. "pesos ($)".
+          enum: [pesos, dólares, euros]
+        minorUnits:
+          type: integer
+          description: Decimal digits of the minor unit.
+          enum: [0, 2]
+      examples:
+        - code: USD
+          symbol: US$
+          name: dólares
+          minorUnits: 2
+    MoneyMinor:
+      type: integer
+      description: |
+        Integer amount in the minor units of the owning plan's currency, as defined by that
+        currency's `minorUnits` (ARS amounts are whole pesos; USD and EUR are cents). Never a
+        float. Use in fields named `<thing>Minor`.
+      examples: [1250]
+    PageMeta:
+      type: object
+      description: |
+        Pagination envelope. A list response is
+        `allOf: [PageMeta, { properties: { items: { type: array, items: <resource> } } }]`.
+      required: [page, pageSize, total]
+      properties:
+        page:
+          type: integer
+          minimum: 1
+        pageSize:
+          type: integer
+          minimum: 1
+          maximum: 100
+        total:
+          type: integer
+          minimum: 0
+          description: Count of all matching items across pages.

@@ -121,9 +121,12 @@ cambio (nuevo endpoint, campo, tipo):
 
 1. PR a `budget-tracker-specs` que modifica `openapi.yaml`.
 2. **Aprobada por los dos devs** antes de mergear — no solo por el owner del change.
-3. CI de `budget-tracker-back` exporta el spec real con `@nestjs/swagger` y lo compara con
-   `oasdiff` contra `openapi.yaml`: si divergen, el build falla. Mantener el back implementado
-   al día con el contrato aprobado, no al revés.
+3. CI de `budget-tracker-back` (job `contract-drift`) exporta el spec real con `@nestjs/swagger`
+   (`npm run openapi:export`, sin base de datos) y lo compara con `oasdiff` contra `openapi.yaml`
+   solo para los paths que el back ya implementa: si un endpoint implementado diverge, o existe
+   sin estar en el contrato, el build falla. Los paths del contrato que el back aún no implementa
+   se listan como aviso, sin fallar (el contrato puede ir por delante). Mantener el back
+   implementado al día con el contrato aprobado, no al revés.
 
 ---
 
