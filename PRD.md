@@ -333,6 +333,7 @@ endpoints con Swagger UI o Prism — en vez de con una suite de tests automatiza
   la cátedra depende del motor.
 - **Gestión de estado en Flutter:** Riverpod, **solo si al menos una de las dos personas ya lo
   usó**. En caso contrario, un repositorio simple con `ChangeNotifier`.
+  *Resuelto (2026-09-29):* ninguna de las dos personas usó Riverpod, así que se adopta `ChangeNotifier` + `ListenableBuilder`, sin `provider` ni Riverpod, con dependencias inyectadas por constructor desde una raíz de composición (change `scaffold-frontend`).
 - **Contrato de API:** acordado en el hito 1 y congelado. Todo cambio posterior se comunica de
   forma explícita porque desbloquea o bloquea a la otra persona.
 - **Repositorio en GitHub** con OpenSpec como metodología de especificación.
@@ -348,7 +349,7 @@ endpoints con Swagger UI o Prism — en vez de con una suite de tests automatiza
 |-------------|------|-------|--------|-----|
 | Repositorio GitHub creado e inicializado | Bloqueante | Equipo | No iniciado | — |
 | Decisión de persistencia del backend | Bloqueante de implementación | Equipo | Pendiente — fase de diseño | — |
-| Decisión de gestión de estado en Flutter | Bloqueante de implementación | Equipo | Pendiente — fase de diseño | — |
+| Decisión de gestión de estado en Flutter | Bloqueante de implementación | Equipo | Resuelta — ChangeNotifier + ListenableBuilder (2026-09-29) | — |
 | Definición de la interfaz de usuario propia | Bloqueante de implementación del frontend | Equipo | No iniciado | — |
 
 ---
@@ -439,3 +440,4 @@ declarados tienen prioridad sobre cualquier requisito de presentación.
 | 1.6 | 2026-09-28 | Equipo | Se agrega FR-41 (Foto de meta, Should Have): subir, cambiar o quitar una foto por meta desde la galería, la cámara o un set sugerido, almacenada por el backend con límite de tamaño y formato y redimensionada server-side; sin foto la tarjeta usa un color. §9 documenta el almacenamiento de imágenes (disco local u object storage, sin CDN). El diseño agrega la pantalla 50 (Foto de la meta) y separa el toast «Recalculado» de 12 en su propio estado posterior al guardado (pantalla 49) |
 | 1.7 | 2026-09-28 | Equipo | FR-03 aclara que las cuentas archivadas se listan aparte y pueden restaurarse. El diseño cierra tres brechas encontradas por el usuario: la lista de cuentas archivadas (pantalla 51, con Restaurar), el selector de grupo como hoja con radio al crear o editar un sobre (pantalla 52, sin buscador porque solo hay 4 grupos) y el estado de monto propio de "Asignar dinero" con la calculadora visible (pantalla 53). También corrige la etiqueta "Súper" a "Supermercado" en 03, por la convención de nombres |
 | 1.8 | 2026-09-28 | Equipo | Persistencia pasa de Prisma a TypeORM (integración nativa con NestJS, entidades por feature). Reparto del equipo por feature full-stack (ver docs/ROADMAP.md y docs/COLABORACION.md). Sin archivos de test: verificación manual |
+| 1.9 | 2026-09-29 | Equipo | Se resuelve la gestión de estado en Flutter: `ChangeNotifier` + `ListenableBuilder`, sin Riverpod ni `provider` (ninguna de las dos personas usó Riverpod, condición de §9). Dependencias inyectadas por constructor desde una raíz de composición. Change `scaffold-frontend` (RRG-41) |
