@@ -1,0 +1,31 @@
+# Tasks
+
+## 1. [specs]
+
+- [ ] 1.1 Update `openapi.yaml`: add tags `Auth` and `Users`, schemas `RegisterRequest`, `LoginRequest`, `User`, `AuthSession`, and operations `POST /auth/register` (`register`, `security: []`, 201/400/409), `POST /auth/login` (`login`, `security: []`, 200/400/401) and `GET /users/me` (`getCurrentUser`, 200/401). Verify `npx @redocly/cli lint openapi.yaml` is clean. Contract PR needs approval from both developers before merge (docs/COLABORACION.md §4).
+
+## 2. [back]
+
+- [ ] 2.1 Add `@nestjs/jwt` and `argon2` dependencies; add `JWT_SECRET` (required, min 32 chars) and `JWT_EXPIRES_IN` (default `7d`) to the Joi schema and to `.env.example`. Verify `npm run build` and `npm run lint` pass and the app refuses to start without `JWT_SECRET`.
+- [ ] 2.2 Add the `users` module: `User` entity, `UsersService` (`create` mapping unique violations to 409, `findById`, `findByEmail`), and the first migration creating `users` (uuid pk, unique lowercase email with CHECK, `password_hash`, `created_at`). Verify `npm run migration:run` applies against the running Postgres and `npm run build` passes.
+- [ ] 2.3 Add the auth foundation: `@Public()` decorator (metadata plus `ApiSecurity({})`), `@CurrentUser()`, global `AuthGuard` as `APP_GUARD` verifying the JWT and loading the user, `JwtModule` from config; switch `GET /health` to `@Public()`. Verify `npm run build` passes and `GET /health` still returns 200 while any other route returns 401 without a token.
+- [ ] 2.4 Add `AuthController`/`AuthService` with `POST /auth/register` and `POST /auth/login`: DTOs with trimming/lowercasing and validation, Argon2id hashing (19 MiB, t=2, p=1), generic 401, dummy-hash timing guard, `UserDto`/`AuthSessionDto`, Swagger decorators matching the contract operationIds. Verify with curl: register 201 without password field, duplicate 409 (also with different case), login 200, wrong password and unknown email return the same 401 body.
+- [ ] 2.5 Add `UsersController` with `GET /users/me` returning `UserDto`. Verify with curl: 200 with token, 401 without token, with garbage token.
+- [ ] 2.6 Update `README.md` (Spanish): `JWT_SECRET`/`JWT_EXPIRES_IN`, migration step, auth endpoints, `@Public()` convention, token trade-offs. Verify the documented commands run as written, and `npm run openapi:export` plus the contract drift script report no drift against the branch's `openapi.yaml`.
+
+## 3. [front]
+
+- [ ] 3.1 `packages/ui`: add icons (`user`, `eyeOff`, `circleAlert`, `qrCode`, `camera`, `logOut`) to `UiIcons`, a `loading` flag to `UiButton` and keyboard/autofill pass-throughs to `UiTextField`, each with a Widgetbook story. Verify `flutter analyze` in `packages/ui` and `widgetbook/` (small `packages/ui` change, other dev reviews).
+- [ ] 3.2 `packages/ui`: add `UiHeroCard`, `UiOptionCard` (Lavender/White), `UiFormMessage` and `UiLinkRow` with one Widgetbook use case per variant. Verify `flutter analyze` in `packages/ui` and `widgetbook/` (small `packages/ui` change, other dev reviews).
+- [ ] 3.3 Generate `packages/api_client` from `openapi.yaml` with `openapi-generator` `dart-dio`, pin the generator version in `openapitools.json`, delete generated `test/` and `doc/` folders, and document the regeneration command in the front README. Verify `flutter pub get` and `flutter analyze` in `packages/api_client`. (Generated code, own commit.)
+- [ ] 3.4 Add `dio`, `flutter_secure_storage` and the `api_client` path dependency; add `core/api/api_client_provider.dart` (Dio, bearer interceptor, 401 hook) and `core/session/session_storage.dart`; allow cleartext HTTP in the debug manifest only and `INTERNET` in main; wire into `Dependencies`. Verify `flutter analyze` and `flutter build apk --debug`.
+- [ ] 3.5 Add `features/auth` domain layer: `AuthRepository` (generated client, error mapping) and `AuthController` (restore, login, register, logout, expire). Verify `flutter analyze`.
+- [ ] 3.6 Rework the router: session `redirect` with `refreshListenable`, splash while restoring, routes `/login`, `/register`, `/welcome`, `/home`, `/plans/new`, `/plans/join`; placeholder pages for 01/02, 20, 30 and a "Cerrar sesión" affordance on the home placeholder. Verify `flutter analyze`.
+- [ ] 3.7 Screen 18 Acceso: `LoginController` and `LoginPage` from `packages/ui` components, hero photo asset, field/form errors and network toast per design. Verify `flutter analyze` and compare against `design/screens/18-acceso.png` on device.
+- [ ] 3.8 Screen 19 Crear cuenta: `RegisterController` and `RegisterPage`, 409 shown in the Email field, 400 messages mapped to fields. Verify `flutter analyze` and compare against `design/screens/19-crear-cuenta.png` on device.
+- [ ] 3.9 Screen 34 Bienvenida: `WelcomePage` with two `UiOptionCard`s and the QR note, navigating to the 20 and 30 placeholders. Verify `flutter analyze` and compare against `design/screens/34-bienvenida.png` on device.
+- [ ] 3.10 Update the front README (Spanish): regenerate the client, run against Prism (`prism mock` command and `API_BASE_URL`), run on a device with `adb reverse tcp:3000 tcp:3000`. Verify the documented commands run as written.
+
+## 4. Verification
+
+- [ ] 4.1 Manual verification checklist. Swagger UI/Prism vs. `openapi.yaml` for each endpoint touched: `POST /auth/register` (201, 400, 409), `POST /auth/login` (200, 400, 401), `GET /users/me` (200, 401), `GET /health` still public; password never in any response; contract drift check clean; `npx @redocly/cli lint openapi.yaml` clean; `openspec validate add-auth` passes. Back: `npm run lint`, `npm run build`, `docker compose up -d --wait`, `npm run migration:run`. Front: `flutter analyze` clean in app, `packages/ui`, `widgetbook/` and `packages/api_client`, `flutter build apk --debug`. Widgetbook vs. `design/screens/` for the new `packages/ui` components. On device: screens 18, 19 and 34 compared side by side with `design/screens/18-acceso.png`, `19-crear-cuenta.png`, `34-bienvenida.png`; flow 18 -> 19 -> 34; restart keeps the session; logout returns to 18; wrong password shows the generic error in the UI; correct login reaches home. No test files anywhere (`*.spec.ts`, `*.test.ts`, `*_test.dart`, `test/`), including the generated client.
