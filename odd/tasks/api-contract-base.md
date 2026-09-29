@@ -24,7 +24,7 @@ Contract-first: every feature change adds endpoints on top of these conventions.
 - [x] T1 Specs repo: specs → design → tasks, one commit per phase (route: delegated writer)
 - [x] T2 Specs repo: implement `openapi.yaml` per tasks (route: same writer)
 - [x] T3 Back repo: `@nestjs/swagger`, spec export script, oasdiff CI job (route: same writer)
-- [ ] T4 Verify + tasks-complete commit; merge; archive; Linear Done
+- [x] T4 Verify + tasks-complete commit; merge; archive; Linear Done
 
 ## Checks
 `openspec validate api-contract-base`, OpenAPI lint of `openapi.yaml` (redocly or equivalent via npx),
@@ -36,3 +36,4 @@ and passes. TDD: off (no test files rule).
 - Specs branch: e7a8a8a specs, b9ca594 design, 78b3335 tasks, d5b46d2 task 1.1, 97775ef task 1.2, ddb9254 tasks complete. Back branch: 9b7f1a1..2f635b9 (tasks 2.1-2.4).
 - UX spec §7 Moneda folded in: Currency {code ARS|USD|EUR, symbol, name, minorUnits 0/2/2}; clients format.
 - Evidence: redocly lint valid (14 warnings), openspec validate ok, back lint+build ok (parent re-ran), openapi:export works without DB, drift script passes and fails on injected mismatches. contract-drift job not yet run on GitHub.
+- Live check done (Docker): /health 200, /docs Swagger UI. Merged --no-ff (specs 7968cb4, back b55d50d), archived, Linear Done.
