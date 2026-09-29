@@ -127,6 +127,16 @@ cambio (nuevo endpoint, campo, tipo):
    sin estar en el contrato, el build falla. Los paths del contrato que el back aún no implementa
    se listan como aviso, sin fallar (el contrato puede ir por delante). Mantener el back
    implementado al día con el contrato aprobado, no al revés.
+4. **Contrato fijado por commit.** El back declara qué versión del contrato implementa en el
+   archivo `.contract-ref` (raíz de `budget-tracker-back`, una línea con el SHA completo del commit
+   de `budget-tracker-specs`). El job `contract-drift` hace checkout de specs en ese commit, no en
+   `main`, así que el CI del back no cambia cuando `main` de specs avanza. Además falla (en vez de
+   pasar) si `oasdiff` no puede correr o su salida no se puede interpretar, y verifica el SHA-256
+   de `oasdiff` antes de extraerlo.
+5. **Cómo subir el pin.** El commit del back que implementa una nueva versión del contrato
+   actualiza `.contract-ref` en el mismo commit: con el cambio de specs ya mergeado, tomar
+   `git -C ../budget-tracker-specs rev-parse main` y pegarlo en `.contract-ref`. Es una línea más
+   por cambio de contrato, a cambio de un CI reproducible.
 
 ---
 
