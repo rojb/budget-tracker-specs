@@ -25,7 +25,11 @@ screen/component (`AmountCapsule` + `Key`).
 
 ### Modified Capabilities
 
-None.
+- `budget-calc-engine`: transactions are now real facts, so envelope activity and Ready to Assign
+  read them; a portion whose envelope was deleted counts as activity of no envelope.
+- `accounts`: the derived balance and the monthly entered/left figures include transactions, and
+  the account detail lists transactions and transfers together.
+- `envelopes`: the envelope list also carries the derived `spentMinor`.
 
 ## Impact
 
