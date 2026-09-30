@@ -31,6 +31,10 @@ tags:
     description: Account registration and login (public).
   - name: Users
     description: The authenticated user.
+  - name: Plans
+    description: Budget plans, their currency and members.
+  - name: Accounts
+    description: Accounts of a plan, with derived balances; archived instead of deleted.
 paths:
   /auth/register:
     post:
@@ -114,6 +118,269 @@ paths:
                 $ref: '#/components/schemas/User'
         '401':
           $ref: '#/components/responses/Unauthorized'
+  /plans:
+    get:
+      tags: [Plans]
+      operationId: listPlans
+      summary: List my plans
+      description: Every plan the caller is a member of, ordered by creation. Bounded collection, not paginated.
+      responses:
+        '200':
+          description: The caller's plans.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Plan'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      tags: [Plans]
+      operationId: createPlan
+      summary: Create a plan
+      description: |
+        Creates a plan with the caller as its only member (`owner`), optionally with its first
+        account, atomically. The currency is fixed forever (FR-40).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePlanRequest'
+      responses:
+        '201':
+          description: The plan was created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Plan'
+        '400':
+          $ref: '#/components/responses/ValidationFailed'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /plans/{planId}:
+    parameters:
+      - $ref: '#/components/parameters/PlanId'
+    get:
+      tags: [Plans]
+      operationId: getPlan
+      summary: Get a plan
+      responses:
+        '200':
+          description: The plan and its members.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Plan'
+        '400':
+          $ref: '#/components/responses/ValidationFailed'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      tags: [Plans]
+      operationId: updatePlan
+      summary: Rename a plan (owner only)
+      description: Only the name can change; the currency is immutable, so sending it is a validation error.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePlanRequest'
+      responses:
+        '200':
+          description: The renamed plan.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Plan'
+        '400':
+          $ref: '#/components/responses/ValidationFailed'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags: [Plans]
+      operationId: deletePlan
+      summary: Delete a plan (owner only)
+      description: Removes the plan and everything scoped to it.
+      responses:
+        '204':
+          description: The plan was deleted.
+        '400':
+          $ref: '#/components/responses/ValidationFailed'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /plans/{planId}/accounts:
+    parameters:
+      - $ref: '#/components/parameters/PlanId'
+    get:
+      tags: [Accounts]
+      operationId: listAccounts
+      summary: List accounts
+      description: |
+        Active accounts ordered by creation, or with `archived=true` the archived ones, most
+        recently archived first. Bounded collection, not paginated.
+      parameters:
+        - name: archived
+          in: query
+          description: List archived accounts instead of active ones.
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: The accounts.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Account'
+        '400':
+          $ref: '#/components/responses/ValidationFailed'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    post:
+      tags: [Accounts]
+      operationId: createAccount
+      summary: Create an account (owner or editor)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAccountRequest'
+      responses:
+        '201':
+          description: The account was created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+        '400':
+          $ref: '#/components/responses/ValidationFailed'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /plans/{planId}/accounts/{accountId}:
+    parameters:
+      - $ref: '#/components/parameters/PlanId'
+      - $ref: '#/components/parameters/AccountId'
+    get:
+      tags: [Accounts]
+      operationId: getAccount
+      summary: Get an account with its monthly inflow and outflow
+      parameters:
+        - name: month
+          in: query
+          description: Month of the inflow/outflow figures; defaults to the current month in the plan's time zone.
+          schema:
+            $ref: '#/components/schemas/MonthKey'
+      responses:
+        '200':
+          description: The account.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountDetail'
+        '400':
+          $ref: '#/components/responses/ValidationFailed'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      tags: [Accounts]
+      operationId: updateAccount
+      summary: Edit an account (owner or editor)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAccountRequest'
+      responses:
+        '200':
+          description: The edited account.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+        '400':
+          $ref: '#/components/responses/ValidationFailed'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /plans/{planId}/accounts/{accountId}/archive:
+    parameters:
+      - $ref: '#/components/parameters/PlanId'
+      - $ref: '#/components/parameters/AccountId'
+    post:
+      tags: [Accounts]
+      operationId: archiveAccount
+      summary: Archive an account (owner or editor)
+      description: The account keeps its history but stops counting in the total balance and in new entries. Accounts are never deleted.
+      responses:
+        '200':
+          description: The archived account.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+        '400':
+          $ref: '#/components/responses/ValidationFailed'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /plans/{planId}/accounts/{accountId}/restore:
+    parameters:
+      - $ref: '#/components/parameters/PlanId'
+      - $ref: '#/components/parameters/AccountId'
+    post:
+      tags: [Accounts]
+      operationId: restoreAccount
+      summary: Restore an archived account (owner or editor)
+      responses:
+        '200':
+          description: The restored account.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+        '400':
+          $ref: '#/components/responses/ValidationFailed'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
   /health:
     get:
       tags: [Health]
@@ -134,6 +401,18 @@ components:
       scheme: bearer
       bearerFormat: JWT
   parameters:
+    PlanId:
+      name: planId
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/Uuid'
+    AccountId:
+      name: accountId
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/Uuid'
     Page:
       name: page
       in: query
@@ -172,6 +451,26 @@ components:
             statusCode: 404
             message: Resource not found
             error: Not Found
+    Forbidden:
+      description: The caller's role in the plan does not allow this operation.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            statusCode: 403
+            message: Your role in this plan does not allow this action
+            error: Forbidden
+    Conflict:
+      description: The resource is already in the requested state.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            statusCode: 409
+            message: Account is already archived
+            error: Conflict
     ValidationFailed:
       description: The request failed validation; `message` lists one entry per violated constraint.
       content:
@@ -281,6 +580,146 @@ components:
           description: 'Sent as `Authorization: Bearer <accessToken>`.'
         user:
           $ref: '#/components/schemas/User'
+    PlanRole:
+      type: string
+      description: |
+        Role of a member in a plan. `owner` manages the plan (rename, delete, and in later changes
+        invitations); `editor` changes the plan's data; `viewer` only reads.
+      enum: [owner, editor, viewer]
+    PlanMember:
+      type: object
+      required: [userId, name, email, role, joinedAt]
+      properties:
+        userId:
+          $ref: '#/components/schemas/Uuid'
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        role:
+          $ref: '#/components/schemas/PlanRole'
+        joinedAt:
+          $ref: '#/components/schemas/Timestamp'
+    Plan:
+      type: object
+      description: A budget plan. Never carries amounts.
+      required: [id, name, currency, timeZone, myRole, members, createdAt]
+      properties:
+        id:
+          $ref: '#/components/schemas/Uuid'
+        name:
+          type: string
+          examples: [Mi plan]
+        currency:
+          $ref: '#/components/schemas/Currency'
+        timeZone:
+          type: string
+          description: IANA time zone used to attribute transactions to budget months.
+          examples: [America/Argentina/Buenos_Aires]
+        myRole:
+          $ref: '#/components/schemas/PlanRole'
+        members:
+          type: array
+          items:
+            $ref: '#/components/schemas/PlanMember'
+        createdAt:
+          $ref: '#/components/schemas/Timestamp'
+    CreatePlanRequest:
+      type: object
+      required: [name, currencyCode]
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 60
+          examples: [Mi plan]
+        currencyCode:
+          $ref: '#/components/schemas/CurrencyCode'
+        timeZone:
+          type: string
+          maxLength: 64
+          description: IANA time zone; defaults to America/Argentina/Buenos_Aires.
+        firstAccount:
+          $ref: '#/components/schemas/CreateAccountRequest'
+    UpdatePlanRequest:
+      type: object
+      required: [name]
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 60
+    AccountType:
+      type: string
+      description: 'Kind of account: bank (Banco), digitalWallet (Billetera virtual), cash (Efectivo).'
+      enum: [bank, digitalWallet, cash]
+    Account:
+      type: object
+      description: An account of a plan. `balanceMinor` is derived on every read, never stored.
+      required: [id, name, type, openingBalanceMinor, balanceMinor, archived, archivedAt, createdAt]
+      properties:
+        id:
+          $ref: '#/components/schemas/Uuid'
+        name:
+          type: string
+          examples: [Banco Nación]
+        type:
+          $ref: '#/components/schemas/AccountType'
+        openingBalanceMinor:
+          $ref: '#/components/schemas/MoneyMinor'
+        balanceMinor:
+          $ref: '#/components/schemas/MoneyMinor'
+        archived:
+          type: boolean
+        archivedAt:
+          oneOf:
+            - $ref: '#/components/schemas/Timestamp'
+            - type: 'null'
+        createdAt:
+          $ref: '#/components/schemas/Timestamp'
+    AccountDetail:
+      description: An account plus the money that entered and left it in one month.
+      allOf:
+        - $ref: '#/components/schemas/Account'
+        - type: object
+          required: [month, inflowMinor, outflowMinor]
+          properties:
+            month:
+              $ref: '#/components/schemas/MonthKey'
+            inflowMinor:
+              $ref: '#/components/schemas/MoneyMinor'
+            outflowMinor:
+              $ref: '#/components/schemas/MoneyMinor'
+    CreateAccountRequest:
+      type: object
+      required: [name, type, openingBalanceMinor]
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 60
+          examples: [Mercado Pago]
+        type:
+          $ref: '#/components/schemas/AccountType'
+        openingBalanceMinor:
+          $ref: '#/components/schemas/MoneyMinor'
+    UpdateAccountRequest:
+      type: object
+      additionalProperties: false
+      minProperties: 1
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 60
+        type:
+          $ref: '#/components/schemas/AccountType'
+        openingBalanceMinor:
+          $ref: '#/components/schemas/MoneyMinor'
     Uuid:
       type: string
       format: uuid
