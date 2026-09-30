@@ -39,8 +39,7 @@ Screen 14 SHALL list the account's transactions and transfers together among its
 first, grouped by day ("Hoy · martes 29", "Ayer · lunes 28", then "Sábado 26"). A transfer SHALL
 be a `TxRow` with the transfer icon, "Transferencia a <account>" or "Transferencia de <account>",
 the time, and the amount with a `−` for money that left; tapping one SHALL offer to delete it after
-confirmation. A transaction SHALL be a `TxRow` as in screen 10, without its account caption;
-opening it belongs to `add-transaction-editing-and-filters`.
+confirmation. A transaction SHALL be a `TxRow` as in screen 10 but with, under the amount instead of the account, the group of its envelope ("Día a día") or, for a split, the names of its envelopes joined with " + " ("Farmacia + Súper"); opening it belongs to `add-transaction-editing-and-filters`.
 
 #### Scenario: Transfer row
 - **WHEN** Banco Nación sent 20.000 to Mercado Pago today at 15:04
