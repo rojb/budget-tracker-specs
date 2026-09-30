@@ -23,7 +23,11 @@ budget-viewing and money-moving screen depends on.
 
 ### Modified Capabilities
 
-None.
+- `plans`: deleting a plan also removes its groups and envelopes; screen 06 opens 35 and 31 and
+  hands over to 02 once the plan has an envelope.
+- `payees`: the suggested envelope must belong to the plan and is cleared when the envelope is
+  deleted.
+- `budget-calc-engine`: assignments reference envelopes of the plan and go with a deleted envelope.
 
 ## Impact
 
