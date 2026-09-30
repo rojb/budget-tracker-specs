@@ -37,6 +37,8 @@ tags:
     description: Accounts of a plan, with derived balances; archived instead of deleted.
   - name: Payees
     description: Reusable payees of a plan; deleted logically so past transactions keep them.
+  - name: Envelopes
+    description: Envelope groups and envelopes of a plan, the starter template and the initial bulk assignment (FR-04).
   - name: Sharing
     description: Invitation codes, joining a plan and managing its members (FR-27).
 paths:
@@ -520,6 +522,369 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
+  /envelope-template:
+    get:
+      tags: [Envelopes]
+      operationId: getEnvelopeTemplate
+      summary: Get the suggested starter template
+      description: The same four groups and twelve envelopes for every plan, in order, each envelope with its icon.
+      responses:
+        '200':
+          description: The template.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnvelopeTemplate'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /plans/{planId}/envelope-groups:
+    get:
+      tags: [Envelopes]
+      operationId: listEnvelopeGroups
+      summary: List the envelope groups
+      description: Groups in order, each with its number of envelopes.
+      parameters:
+        - $ref: '#/components/parameters/PlanId'
+      responses:
+        '200':
+          description: The groups of the plan.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EnvelopeGroup'
+        '400':
+          $ref: '#/components/responses/ValidationFailed'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    post:
+      tags: [Envelopes]
+      operationId: createEnvelopeGroup
+      summary: Create an envelope group (owner or editor)
+      description: The group is placed after the existing ones.
+      parameters:
+        - $ref: '#/components/parameters/PlanId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateEnvelopeGroupRequest'
+      responses:
+        '201':
+          description: The group was created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnvelopeGroup'
+        '400':
+          $ref: '#/components/responses/ValidationFailed'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/EnvelopeGroupNameTaken'
+  /plans/{planId}/envelope-groups/order:
+    put:
+      tags: [Envelopes]
+      operationId: reorderEnvelopeGroups
+      summary: Set the order of the groups (owner or editor)
+      description: "`groupIds` must list every group of the plan exactly once."
+      parameters:
+        - $ref: '#/components/parameters/PlanId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReorderEnvelopeGroupsRequest'
+      responses:
+        '200':
+          description: The groups in the new order.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EnvelopeGroup'
+        '400':
+          $ref: '#/components/responses/ValidationFailed'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /plans/{planId}/envelope-groups/template:
+    post:
+      tags: [Envelopes]
+      operationId: applyEnvelopeTemplate
+      summary: Create the starter template envelopes (owner or editor)
+      description: Creates the selected template envelopes, without assigned amount, in one atomic operation. Only allowed in a plan with no envelopes.
+      parameters:
+        - $ref: '#/components/parameters/PlanId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApplyEnvelopeTemplateRequest'
+      responses:
+        '201':
+          description: The groups and envelopes of the plan.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnvelopeTemplateResult'
+        '400':
+          $ref: '#/components/responses/ValidationFailed'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/PlanHasEnvelopes'
+  /plans/{planId}/envelope-groups/{groupId}:
+    patch:
+      tags: [Envelopes]
+      operationId: updateEnvelopeGroup
+      summary: Rename an envelope group (owner or editor)
+      parameters:
+        - $ref: '#/components/parameters/PlanId'
+        - $ref: '#/components/parameters/GroupId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateEnvelopeGroupRequest'
+      responses:
+        '200':
+          description: The renamed group.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnvelopeGroup'
+        '400':
+          $ref: '#/components/responses/ValidationFailed'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/EnvelopeGroupNameTaken'
+    delete:
+      tags: [Envelopes]
+      operationId: deleteEnvelopeGroup
+      summary: Delete an envelope group (owner or editor)
+      description: Its envelopes are kept, without a group; no money or transaction is lost.
+      parameters:
+        - $ref: '#/components/parameters/PlanId'
+        - $ref: '#/components/parameters/GroupId'
+      responses:
+        '204':
+          description: The group was deleted.
+        '400':
+          $ref: '#/components/responses/ValidationFailed'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /plans/{planId}/envelopes:
+    get:
+      tags: [Envelopes]
+      operationId: listEnvelopes
+      summary: List the envelopes with the figures of a month
+      description: Envelopes ordered by group and position, those without a group last, with the assigned and available amounts the budget engine derives for the month and the month Ready to Assign.
+      parameters:
+        - $ref: '#/components/parameters/PlanId'
+        - $ref: '#/components/parameters/Month'
+      responses:
+        '200':
+          description: The envelopes and the month's Ready to Assign.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnvelopeList'
+        '400':
+          $ref: '#/components/responses/ValidationFailed'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    post:
+      tags: [Envelopes]
+      operationId: createEnvelope
+      summary: Create an envelope (owner or editor)
+      description: Placed last in its group, or last among the envelopes without a group.
+      parameters:
+        - $ref: '#/components/parameters/PlanId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateEnvelopeRequest'
+      responses:
+        '201':
+          description: The envelope was created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Envelope'
+        '400':
+          $ref: '#/components/responses/ValidationFailed'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/EnvelopeNameTaken'
+  /plans/{planId}/envelopes/order:
+    put:
+      tags: [Envelopes]
+      operationId: reorderEnvelopes
+      summary: Set the order of the envelopes of a group (owner or editor)
+      description: "`envelopeIds` must list every envelope of that group (or of the envelopes without a group when `groupId` is absent) exactly once."
+      parameters:
+        - $ref: '#/components/parameters/PlanId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReorderEnvelopesRequest'
+      responses:
+        '200':
+          description: The envelopes in the new order.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Envelope'
+        '400':
+          $ref: '#/components/responses/ValidationFailed'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /plans/{planId}/envelopes/initial-assignment:
+    post:
+      tags: [Envelopes]
+      operationId: applyInitialAssignment
+      summary: Assign money to several envelopes at once (owner or editor)
+      description: Stores each amount as the envelope's assignment for the month, replacing the previous one, in one atomic operation. The resulting Ready to Assign can be negative.
+      parameters:
+        - $ref: '#/components/parameters/PlanId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InitialAssignmentRequest'
+      responses:
+        '200':
+          description: The month, the total assigned and the Ready to Assign.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InitialAssignmentResult'
+        '400':
+          $ref: '#/components/responses/ValidationFailed'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /plans/{planId}/envelopes/{envelopeId}:
+    get:
+      tags: [Envelopes]
+      operationId: getEnvelope
+      summary: Get an envelope
+      parameters:
+        - $ref: '#/components/parameters/PlanId'
+        - $ref: '#/components/parameters/EnvelopeId'
+      responses:
+        '200':
+          description: The envelope.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Envelope'
+        '400':
+          $ref: '#/components/responses/ValidationFailed'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      tags: [Envelopes]
+      operationId: updateEnvelope
+      summary: Edit or move an envelope (owner or editor)
+      description: Moving it to another group places it last there.
+      parameters:
+        - $ref: '#/components/parameters/PlanId'
+        - $ref: '#/components/parameters/EnvelopeId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateEnvelopeRequest'
+      responses:
+        '200':
+          description: The edited envelope.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Envelope'
+        '400':
+          $ref: '#/components/responses/ValidationFailed'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/EnvelopeNameTaken'
+    delete:
+      tags: [Envelopes]
+      operationId: deleteEnvelope
+      summary: Delete an envelope (owner or editor)
+      description: Its assignments are deleted with it, so its money returns to Ready to Assign. Transactions are kept without an envelope; payees that suggested it lose the suggestion.
+      parameters:
+        - $ref: '#/components/parameters/PlanId'
+        - $ref: '#/components/parameters/EnvelopeId'
+      responses:
+        '204':
+          description: The envelope was deleted.
+        '400':
+          $ref: '#/components/responses/ValidationFailed'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
   /plans/{planId}/invitation:
     get:
       tags: [Sharing]
@@ -828,6 +1193,24 @@ components:
       required: true
       schema:
         $ref: '#/components/schemas/Uuid'
+    GroupId:
+      name: groupId
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/Uuid'
+    EnvelopeId:
+      name: envelopeId
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/Uuid'
+    Month:
+      name: month
+      in: query
+      description: Budget month as YYYY-MM; the current month in the plan's time zone when absent.
+      schema:
+        $ref: '#/components/schemas/MonthKey'
     AccountId:
       name: accountId
       in: path
@@ -911,6 +1294,36 @@ components:
           example:
             statusCode: 409
             message: Payee name already in use
+            error: Conflict
+    EnvelopeGroupNameTaken:
+      description: Another group of the plan already has that name (case-insensitive).
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            statusCode: 409
+            message: Envelope group name already in use
+            error: Conflict
+    EnvelopeNameTaken:
+      description: Another envelope of the plan already has that name (case-insensitive).
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            statusCode: 409
+            message: Envelope name already in use
+            error: Conflict
+    PlanHasEnvelopes:
+      description: The template can only be applied to a plan that has no envelopes.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            statusCode: 409
+            message: The plan already has envelopes
             error: Conflict
     ValidationFailed:
       description: The request failed validation; `message` lists one entry per violated constraint.
@@ -1312,6 +1725,226 @@ components:
           examples: [20000]
         occurredAt:
           $ref: '#/components/schemas/Timestamp'
+    EnvelopeIcon:
+      type: string
+      description: Closed set of icon names an envelope can carry; the client maps each to a glyph.
+      enum: [tag, home, bus, utensils, heartPulse, gift, cart, pill, wifi, settings, ticket, repeat, lifeBuoy, plane]
+    EnvelopeGroup:
+      type: object
+      description: An ordered group of envelopes of a plan.
+      required: [id, name, position, envelopeCount, createdAt]
+      properties:
+        id:
+          $ref: '#/components/schemas/Uuid'
+        name:
+          type: string
+          examples: [Día a día]
+        position:
+          type: integer
+          minimum: 0
+          description: Zero-based place of the group in the plan.
+        envelopeCount:
+          type: integer
+          minimum: 0
+        createdAt:
+          $ref: '#/components/schemas/Timestamp'
+    CreateEnvelopeGroupRequest:
+      type: object
+      required: [name]
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 60
+          examples: [Hogar]
+    UpdateEnvelopeGroupRequest:
+      type: object
+      required: [name]
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 60
+    ReorderEnvelopeGroupsRequest:
+      type: object
+      required: [groupIds]
+      additionalProperties: false
+      properties:
+        groupIds:
+          type: array
+          description: Every group of the plan exactly once, in the desired order.
+          items:
+            $ref: '#/components/schemas/Uuid'
+    Envelope:
+      type: object
+      description: An envelope of a plan. `groupId` is absent when it has no group ("Sin grupo").
+      required: [id, name, icon, position, createdAt]
+      properties:
+        id:
+          $ref: '#/components/schemas/Uuid'
+        name:
+          type: string
+          examples: [Supermercado]
+        icon:
+          $ref: '#/components/schemas/EnvelopeIcon'
+        groupId:
+          $ref: '#/components/schemas/Uuid'
+        position:
+          type: integer
+          minimum: 0
+          description: Zero-based place inside its group (or among the envelopes without a group).
+        createdAt:
+          $ref: '#/components/schemas/Timestamp'
+    EnvelopeLine:
+      type: object
+      description: An envelope with the figures the budget engine derives for a month.
+      required: [envelope, assignedMinor, availableMinor]
+      properties:
+        envelope:
+          $ref: '#/components/schemas/Envelope'
+        assignedMinor:
+          $ref: '#/components/schemas/MoneyMinor'
+        availableMinor:
+          $ref: '#/components/schemas/MoneyMinor'
+    EnvelopeList:
+      type: object
+      required: [month, readyToAssignMinor, items]
+      properties:
+        month:
+          $ref: '#/components/schemas/MonthKey'
+        readyToAssignMinor:
+          $ref: '#/components/schemas/MoneyMinor'
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/EnvelopeLine'
+    CreateEnvelopeRequest:
+      type: object
+      required: [name]
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 60
+          examples: [Suscripciones]
+        groupId:
+          $ref: '#/components/schemas/Uuid'
+        icon:
+          $ref: '#/components/schemas/EnvelopeIcon'
+    UpdateEnvelopeRequest:
+      type: object
+      additionalProperties: false
+      minProperties: 1
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 60
+        groupId:
+          $ref: '#/components/schemas/Uuid'
+        icon:
+          $ref: '#/components/schemas/EnvelopeIcon'
+    ReorderEnvelopesRequest:
+      type: object
+      required: [envelopeIds]
+      additionalProperties: false
+      properties:
+        groupId:
+          $ref: '#/components/schemas/Uuid'
+          description: The group whose envelopes are ordered; absent for the envelopes without a group.
+        envelopeIds:
+          type: array
+          description: Every envelope of that scope exactly once, in the desired order.
+          items:
+            $ref: '#/components/schemas/Uuid'
+    TemplateEnvelope:
+      type: object
+      required: [name, icon]
+      properties:
+        name:
+          type: string
+          examples: [Alquiler]
+        icon:
+          $ref: '#/components/schemas/EnvelopeIcon'
+    TemplateGroup:
+      type: object
+      required: [name, envelopes]
+      properties:
+        name:
+          type: string
+          examples: [Obligaciones]
+        envelopes:
+          type: array
+          items:
+            $ref: '#/components/schemas/TemplateEnvelope'
+    EnvelopeTemplate:
+      type: object
+      description: The suggested starter template, the same for every plan (4 groups, 12 envelopes).
+      required: [groups]
+      properties:
+        groups:
+          type: array
+          items:
+            $ref: '#/components/schemas/TemplateGroup'
+    ApplyEnvelopeTemplateRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        envelopeNames:
+          type: array
+          description: Names of the template envelopes to create; all of them when absent.
+          items:
+            type: string
+    EnvelopeTemplateResult:
+      type: object
+      required: [groups, envelopes]
+      properties:
+        groups:
+          type: array
+          items:
+            $ref: '#/components/schemas/EnvelopeGroup'
+        envelopes:
+          type: array
+          items:
+            $ref: '#/components/schemas/Envelope'
+    InitialAssignment:
+      type: object
+      required: [envelopeId, amountMinor]
+      additionalProperties: false
+      properties:
+        envelopeId:
+          $ref: '#/components/schemas/Uuid'
+        amountMinor:
+          type: integer
+          minimum: 0
+          examples: [280000]
+    InitialAssignmentRequest:
+      type: object
+      required: [assignments]
+      additionalProperties: false
+      properties:
+        month:
+          $ref: '#/components/schemas/MonthKey'
+        assignments:
+          type: array
+          minItems: 1
+          maxItems: 100
+          items:
+            $ref: '#/components/schemas/InitialAssignment'
+    InitialAssignmentResult:
+      type: object
+      required: [month, assignedMinor, readyToAssignMinor]
+      properties:
+        month:
+          $ref: '#/components/schemas/MonthKey'
+        assignedMinor:
+          $ref: '#/components/schemas/MoneyMinor'
+        readyToAssignMinor:
+          $ref: '#/components/schemas/MoneyMinor'
+          description: Ready to Assign of the month after the assignment; negative when over-assigned.
     Uuid:
       type: string
       format: uuid
