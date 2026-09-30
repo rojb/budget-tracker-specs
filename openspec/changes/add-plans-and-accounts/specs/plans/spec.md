@@ -145,7 +145,7 @@ an amount. Tapping a plan SHALL make it active and open its Plan tab. It SHALL o
 
 #### Scenario: Member roles
 - **WHEN** the active plan has an owner and an editor
-- **THEN** 16 lists them as "Dueña"/"Dueño" and "Puede editar", with "(vos)" after the signed-in user's name
+- **THEN** 16 lists them as "Titular" and "Puede editar" (a viewer as "Solo lectura"), with "(vos)" after the signed-in user's name; role labels are gender-neutral because the app does not know the member's gender
 
 ### Requirement: Plan currency in the app
 Every amount of the active plan SHALL be displayed with its currency's symbol and minor units in
