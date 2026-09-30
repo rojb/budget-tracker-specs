@@ -67,8 +67,8 @@ SHALL be placed last in its group, or last among the envelopes without a group. 
 same plan SHALL NOT share a name, compared without letter case (`409`). A `groupId` of another plan
 SHALL respond `404`. The response SHALL be `201` with the envelope. `GET /plans/{planId}/envelopes`
 SHALL return the plan's envelopes with, for a `month` (`YYYY-MM`, default the current month in the
-plan's time zone), the `assignedMinor` and `availableMinor` the budget engine derives for each, and
-the `readyToAssignMinor` of that month.
+plan's time zone), the `assignedMinor`, `spentMinor` and `availableMinor` the budget engine derives
+for each, and the `readyToAssignMinor` of that month.
 
 #### Scenario: New envelope in a group
 - **WHEN** Sofía creates "Suscripciones" in "Día a día" with icon `tag`
@@ -88,11 +88,15 @@ the `readyToAssignMinor` of that month.
 
 #### Scenario: New envelope starts empty
 - **WHEN** an envelope is created in a plan with Ready to Assign 370.000
-- **THEN** its `assignedMinor` and `availableMinor` are 0 and Ready to Assign stays 370.000
+- **THEN** its `assignedMinor`, `spentMinor` and `availableMinor` are 0 and Ready to Assign stays 370.000
 
 #### Scenario: List for a month
 - **WHEN** a member lists the envelopes of a plan whose Transporte has 20.000 assigned in 2026-09 and requests `month=2026-09`
-- **THEN** Transporte has `assignedMinor` 20.000 and `availableMinor` 20.000 and the response carries the month's Ready to Assign
+- **THEN** Transporte has `assignedMinor` 20.000, `spentMinor` 0 and `availableMinor` 20.000 and the response carries the month's Ready to Assign
+
+#### Scenario: List with spending
+- **WHEN** Supermercado has 60.000 assigned in 2026-09 and an 18.450 expense is recorded on it in that month
+- **THEN** the list for `month=2026-09` shows `assignedMinor` 60.000, `spentMinor` 18.450 and `availableMinor` 41.550
 
 ### Requirement: Read, edit and move an envelope
 `GET /plans/{planId}/envelopes/{envelopeId}` SHALL return an envelope to any member. An owner or
