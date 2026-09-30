@@ -6,3 +6,7 @@
 .DS_Store
 Thumbs.db
 *.code-workspace
+
+# Code repos cloned inside this folder (separate git repos)
+budget-tracker-back/
+budget-tracker-front/
