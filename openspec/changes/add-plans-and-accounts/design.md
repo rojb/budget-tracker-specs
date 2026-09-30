@@ -55,7 +55,7 @@ Schemas (camelCase):
 - `CreatePlanRequest { name 1..60, currencyCode: CurrencyCode, timeZone?, firstAccount?: CreateAccountRequest }`,
   `additionalProperties: false`.
 - `UpdatePlanRequest { name 1..60 }`, `additionalProperties: false` (so `currencyCode` → 400).
-- `Account { id, name, type, openingBalanceMinor, balanceMinor, archived, archivedAt: Timestamp|null, createdAt }`.
+- `Account { id, name, type, openingBalanceMinor, balanceMinor, archived, archivedAt?: Timestamp (only when archived), createdAt }`.
 - `AccountDetail = Account + { month: MonthKey, inflowMinor, outflowMinor }`.
 - `CreateAccountRequest { name 1..60, type, openingBalanceMinor: MoneyMinor }`; `UpdateAccountRequest`
   the same fields, all optional, `minProperties: 1`.

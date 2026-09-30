@@ -39,7 +39,7 @@ balance.
 `GET /plans/{planId}/accounts` SHALL return the plan's active (not archived) accounts ordered by
 creation, and with `archived=true` the archived ones ordered by archive instant, most recent
 first. Each account SHALL carry id, name, type, opening balance, derived balance, `archived`, the
-archive instant (or null) and the creation instant.
+archive instant (present only when archived) and the creation instant.
 
 #### Scenario: Active list
 - **WHEN** the plan has Banco Nación, Mercado Pago, Efectivo and an archived Brubank
