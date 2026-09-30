@@ -160,9 +160,9 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
   /plans/{planId}:
-    parameters:
-      - $ref: '#/components/parameters/PlanId'
     get:
+      parameters:
+        - $ref: '#/components/parameters/PlanId'
       tags: [Plans]
       operationId: getPlan
       summary: Get a plan
@@ -180,6 +180,8 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
     patch:
+      parameters:
+        - $ref: '#/components/parameters/PlanId'
       tags: [Plans]
       operationId: updatePlan
       summary: Rename a plan (owner only)
@@ -206,6 +208,8 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
     delete:
+      parameters:
+        - $ref: '#/components/parameters/PlanId'
       tags: [Plans]
       operationId: deletePlan
       summary: Delete a plan (owner only)
@@ -222,8 +226,6 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
   /plans/{planId}/accounts:
-    parameters:
-      - $ref: '#/components/parameters/PlanId'
     get:
       tags: [Accounts]
       operationId: listAccounts
@@ -232,6 +234,7 @@ paths:
         Active accounts ordered by creation, or with `archived=true` the archived ones, most
         recently archived first. Bounded collection, not paginated.
       parameters:
+        - $ref: '#/components/parameters/PlanId'
         - name: archived
           in: query
           description: List archived accounts instead of active ones.
@@ -254,6 +257,8 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
     post:
+      parameters:
+        - $ref: '#/components/parameters/PlanId'
       tags: [Accounts]
       operationId: createAccount
       summary: Create an account (owner or editor)
@@ -279,14 +284,13 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
   /plans/{planId}/accounts/{accountId}:
-    parameters:
-      - $ref: '#/components/parameters/PlanId'
-      - $ref: '#/components/parameters/AccountId'
     get:
       tags: [Accounts]
       operationId: getAccount
       summary: Get an account with its monthly inflow and outflow
       parameters:
+        - $ref: '#/components/parameters/PlanId'
+        - $ref: '#/components/parameters/AccountId'
         - name: month
           in: query
           description: Month of the inflow/outflow figures; defaults to the current month in the plan's time zone.
@@ -306,6 +310,9 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
     patch:
+      parameters:
+        - $ref: '#/components/parameters/PlanId'
+        - $ref: '#/components/parameters/AccountId'
       tags: [Accounts]
       operationId: updateAccount
       summary: Edit an account (owner or editor)
@@ -331,10 +338,10 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
   /plans/{planId}/accounts/{accountId}/archive:
-    parameters:
-      - $ref: '#/components/parameters/PlanId'
-      - $ref: '#/components/parameters/AccountId'
     post:
+      parameters:
+        - $ref: '#/components/parameters/PlanId'
+        - $ref: '#/components/parameters/AccountId'
       tags: [Accounts]
       operationId: archiveAccount
       summary: Archive an account (owner or editor)
@@ -357,10 +364,10 @@ paths:
         '409':
           $ref: '#/components/responses/Conflict'
   /plans/{planId}/accounts/{accountId}/restore:
-    parameters:
-      - $ref: '#/components/parameters/PlanId'
-      - $ref: '#/components/parameters/AccountId'
     post:
+      parameters:
+        - $ref: '#/components/parameters/PlanId'
+        - $ref: '#/components/parameters/AccountId'
       tags: [Accounts]
       operationId: restoreAccount
       summary: Restore an archived account (owner or editor)
@@ -659,7 +666,7 @@ components:
     Account:
       type: object
       description: An account of a plan. `balanceMinor` is derived on every read, never stored.
-      required: [id, name, type, openingBalanceMinor, balanceMinor, archived, archivedAt, createdAt]
+      required: [id, name, type, openingBalanceMinor, balanceMinor, archived, createdAt]
       properties:
         id:
           $ref: '#/components/schemas/Uuid'
@@ -675,9 +682,8 @@ components:
         archived:
           type: boolean
         archivedAt:
-          oneOf:
-            - $ref: '#/components/schemas/Timestamp'
-            - type: 'null'
+          $ref: '#/components/schemas/Timestamp'
+          description: When the account was archived; present only while `archived` is true.
         createdAt:
           $ref: '#/components/schemas/Timestamp'
     AccountDetail:
