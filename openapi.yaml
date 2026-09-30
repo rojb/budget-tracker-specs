@@ -39,6 +39,8 @@ tags:
     description: Reusable payees of a plan; deleted logically so past transactions keep them.
   - name: Envelopes
     description: Envelope groups and envelopes of a plan, the starter template and the initial bulk assignment (FR-04).
+  - name: Transactions
+    description: Expenses and income of a plan, with split payments, and the movements list (FR-06, FR-07, FR-08, FR-14).
   - name: Sharing
     description: Invitation codes, joining a plan and managing its members (FR-27).
 paths:
@@ -1140,6 +1142,78 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
+  /plans/{planId}/transactions:
+    get:
+      tags: [Transactions]
+      operationId: listTransactions
+      summary: List transactions (movements)
+      description: |
+        Newest first by `occurredAt` (ties by creation instant); with `accountId`, only the
+        transactions recorded on that account. Transfers between accounts are not transactions and
+        are not listed here.
+      parameters:
+        - $ref: '#/components/parameters/PlanId'
+        - name: accountId
+          in: query
+          schema:
+            $ref: '#/components/schemas/Uuid'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: A page of transactions.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionPage'
+        '400':
+          $ref: '#/components/responses/ValidationFailed'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    post:
+      tags: [Transactions]
+      operationId: createTransaction
+      summary: Record an expense or an income (owner or editor)
+      description: |
+        An expense names its envelope with `envelopeId` or is divided with `splits` (at least two
+        portions that add up exactly to `amountMinor`). An income may name an `envelopeId`; without
+        one it goes to Ready to Assign. The payee is optional: `payeeId` of an active payee or
+        `payeeName`, which reuses the active payee with that name or creates it.
+      parameters:
+        - $ref: '#/components/parameters/PlanId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTransactionRequest'
+      responses:
+        '201':
+          description: The transaction was recorded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transaction'
+        '400':
+          $ref: '#/components/responses/ValidationFailed'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: The account is archived.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                statusCode: 409
+                message: Account is archived
+                error: Conflict
   /health:
     get:
       tags: [Health]
@@ -1800,12 +1874,15 @@ components:
     EnvelopeLine:
       type: object
       description: An envelope with the figures the budget engine derives for a month.
-      required: [envelope, assignedMinor, availableMinor]
+      required: [envelope, assignedMinor, spentMinor, availableMinor]
       properties:
         envelope:
           $ref: '#/components/schemas/Envelope'
         assignedMinor:
           $ref: '#/components/schemas/MoneyMinor'
+        spentMinor:
+          $ref: '#/components/schemas/MoneyMinor'
+          description: Net outflow of the month (expenses minus income sent to the envelope); negative when income exceeds expenses.
         availableMinor:
           $ref: '#/components/schemas/MoneyMinor'
     EnvelopeList:
@@ -1945,6 +2022,121 @@ components:
         readyToAssignMinor:
           $ref: '#/components/schemas/MoneyMinor'
           description: Ready to Assign of the month after the assignment; negative when over-assigned.
+    TransactionDirection:
+      type: string
+      description: '`expense` moves money out of the account, `income` moves money in.'
+      enum: [expense, income]
+    TransactionSplit:
+      type: object
+      description: |
+        One portion of a transaction. `envelopeId` is absent for an income sent to Ready to Assign
+        and for a portion whose envelope was deleted ("Sin sobre").
+      required: [amountMinor]
+      properties:
+        envelopeId:
+          $ref: '#/components/schemas/Uuid'
+        envelopeName:
+          type: string
+          examples: [Supermercado]
+        amountMinor:
+          type: integer
+          minimum: 1
+    Transaction:
+      type: object
+      description: An expense or income of a plan. Its portions always add up to `amountMinor`.
+      required: [id, direction, accountId, accountName, amountMinor, occurredAt, splits, createdAt]
+      properties:
+        id:
+          $ref: '#/components/schemas/Uuid'
+        direction:
+          $ref: '#/components/schemas/TransactionDirection'
+        accountId:
+          $ref: '#/components/schemas/Uuid'
+        accountName:
+          type: string
+          examples: [Banco Nación]
+        amountMinor:
+          type: integer
+          minimum: 1
+          description: Positive amount in the plan currency's minor units.
+        occurredAt:
+          $ref: '#/components/schemas/Timestamp'
+        payeeId:
+          $ref: '#/components/schemas/Uuid'
+        payeeName:
+          type: string
+          description: Name of the payee, also when it was deleted afterwards.
+          examples: [Coto]
+        description:
+          type: string
+          maxLength: 120
+          examples: [Compra semanal]
+        splits:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/TransactionSplit'
+        createdAt:
+          $ref: '#/components/schemas/Timestamp'
+    TransactionPage:
+      allOf:
+        - $ref: '#/components/schemas/PageMeta'
+        - type: object
+          required: [items]
+          properties:
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/Transaction'
+    CreateTransactionSplit:
+      type: object
+      required: [envelopeId, amountMinor]
+      additionalProperties: false
+      properties:
+        envelopeId:
+          $ref: '#/components/schemas/Uuid'
+        amountMinor:
+          type: integer
+          minimum: 1
+          examples: [15800]
+    CreateTransactionRequest:
+      type: object
+      description: |
+        Exclusive fields, enforced with `400`: `payeeId` or `payeeName`; for an expense `envelopeId`
+        or `splits` (one of them is required); an income takes no `splits`. The portions of `splits`
+        must add up exactly to `amountMinor`.
+      required: [direction, accountId, amountMinor, occurredAt]
+      additionalProperties: false
+      properties:
+        direction:
+          $ref: '#/components/schemas/TransactionDirection'
+        accountId:
+          $ref: '#/components/schemas/Uuid'
+        amountMinor:
+          type: integer
+          minimum: 1
+          examples: [18450]
+        occurredAt:
+          $ref: '#/components/schemas/Timestamp'
+        payeeId:
+          $ref: '#/components/schemas/Uuid'
+        payeeName:
+          type: string
+          minLength: 1
+          maxLength: 60
+          examples: [Coto]
+        description:
+          type: string
+          maxLength: 120
+          examples: [Compra semanal]
+        envelopeId:
+          $ref: '#/components/schemas/Uuid'
+        splits:
+          type: array
+          minItems: 2
+          maxItems: 20
+          items:
+            $ref: '#/components/schemas/CreateTransactionSplit'
     Uuid:
       type: string
       format: uuid
