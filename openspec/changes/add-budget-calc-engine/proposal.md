@@ -44,7 +44,7 @@ None.
 
 ## Metadata
 
-- Owner: Ruben
+- Owner: nathaliascode
 - Repos touched: budget-tracker-back
 - FRs covered: FR-11, FR-12
 - Screens: none (internal engine; feeds 02, 03, 04, 25, 46, 53)
