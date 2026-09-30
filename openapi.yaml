@@ -35,6 +35,8 @@ tags:
     description: Budget plans, their currency and members.
   - name: Accounts
     description: Accounts of a plan, with derived balances; archived instead of deleted.
+  - name: Payees
+    description: Reusable payees of a plan; deleted logically so past transactions keep them.
 paths:
   /auth/register:
     post:
@@ -388,6 +390,134 @@ paths:
           $ref: '#/components/responses/NotFound'
         '409':
           $ref: '#/components/responses/Conflict'
+  /plans/{planId}/payees:
+    get:
+      tags: [Payees]
+      operationId: listPayees
+      summary: List and search payees
+      description: Active payees ordered by name, optionally filtered by `q` (case-insensitive substring).
+      parameters:
+        - $ref: '#/components/parameters/PlanId'
+        - name: q
+          in: query
+          description: Case-insensitive part of the name.
+          schema:
+            type: string
+            maxLength: 60
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: A page of payees.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PayeePage'
+        '400':
+          $ref: '#/components/responses/ValidationFailed'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    post:
+      tags: [Payees]
+      operationId: createPayee
+      summary: Create a payee (owner or editor)
+      parameters:
+        - $ref: '#/components/parameters/PlanId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePayeeRequest'
+      responses:
+        '201':
+          description: The payee was created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payee'
+        '400':
+          $ref: '#/components/responses/ValidationFailed'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/PayeeNameTaken'
+  /plans/{planId}/payees/{payeeId}:
+    get:
+      tags: [Payees]
+      operationId: getPayee
+      summary: Get a payee, including a deleted one
+      parameters:
+        - $ref: '#/components/parameters/PlanId'
+        - $ref: '#/components/parameters/PayeeId'
+      responses:
+        '200':
+          description: The payee.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payee'
+        '400':
+          $ref: '#/components/responses/ValidationFailed'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      tags: [Payees]
+      operationId: updatePayee
+      summary: Edit an active payee (owner or editor)
+      parameters:
+        - $ref: '#/components/parameters/PlanId'
+        - $ref: '#/components/parameters/PayeeId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePayeeRequest'
+      responses:
+        '200':
+          description: The edited payee.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payee'
+        '400':
+          $ref: '#/components/responses/ValidationFailed'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/PayeeNameTaken'
+    delete:
+      tags: [Payees]
+      operationId: deletePayee
+      summary: Delete a payee logically (owner or editor)
+      description: The payee stops being listed and offered, but past transactions keep it (FR-05).
+      parameters:
+        - $ref: '#/components/parameters/PlanId'
+        - $ref: '#/components/parameters/PayeeId'
+      responses:
+        '204':
+          description: The payee was deleted.
+        '400':
+          $ref: '#/components/responses/ValidationFailed'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
   /health:
     get:
       tags: [Health]
@@ -410,6 +540,12 @@ components:
   parameters:
     PlanId:
       name: planId
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/Uuid'
+    PayeeId:
+      name: payeeId
       in: path
       required: true
       schema:
@@ -477,6 +613,16 @@ components:
           example:
             statusCode: 409
             message: Account is already archived
+            error: Conflict
+    PayeeNameTaken:
+      description: Another active payee of the plan already has that name (case-insensitive).
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            statusCode: 409
+            message: Payee name already in use
             error: Conflict
     ValidationFailed:
       description: The request failed validation; `message` lists one entry per violated constraint.
@@ -726,6 +872,60 @@ components:
           $ref: '#/components/schemas/AccountType'
         openingBalanceMinor:
           $ref: '#/components/schemas/MoneyMinor'
+    Payee:
+      type: object
+      description: A payee of a plan. A deleted payee is still readable so past transactions can show it.
+      required: [id, name, transactionCount, deleted, createdAt]
+      properties:
+        id:
+          $ref: '#/components/schemas/Uuid'
+        name:
+          type: string
+          examples: [Coto]
+        suggestedEnvelopeId:
+          $ref: '#/components/schemas/Uuid'
+          description: Envelope proposed when this payee is chosen; absent when there is none.
+        transactionCount:
+          type: integer
+          minimum: 0
+          description: Transactions that reference this payee.
+        deleted:
+          type: boolean
+        createdAt:
+          $ref: '#/components/schemas/Timestamp'
+    PayeePage:
+      allOf:
+        - $ref: '#/components/schemas/PageMeta'
+        - type: object
+          required: [items]
+          properties:
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/Payee'
+    CreatePayeeRequest:
+      type: object
+      required: [name]
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 60
+          examples: [Coto]
+        suggestedEnvelopeId:
+          $ref: '#/components/schemas/Uuid'
+    UpdatePayeeRequest:
+      type: object
+      additionalProperties: false
+      minProperties: 1
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 60
+        suggestedEnvelopeId:
+          $ref: '#/components/schemas/Uuid'
     Uuid:
       type: string
       format: uuid
