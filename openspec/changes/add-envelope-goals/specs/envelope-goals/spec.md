@@ -398,10 +398,15 @@ lavender tint with the envelope's icon; the saved amount and the percent over a 
 a glass panel with the name, the "<target> · <month>" and an arrow. Tapping it SHALL open 05;
 "+ Nueva meta" SHALL open 31 with the group "Metas" preselected (when the plan has such a group,
 compared without letter case) and the goal type "Con fecha". A page indicator SHALL show the
-position in the carousel. With no goals, the section SHALL show the card "Creá tu primera meta"
-that opens 31 in the same way; while loading, a skeleton card; on failure, a retry. The other parts
-of 01 (the "Listo para asignar" card and its "+", Reportes) belong to other changes and SHALL stay
-absent or disabled here.
+position in the carousel, at the right of the "Metas" title. The cards SHALL be drawn slightly
+rotated, the centered one and the neighbors that peek at its sides, as in the render. With no
+goals, the section SHALL show the card "Creá tu primera meta" that opens 31 in the same way; while
+loading, a skeleton card; on failure, a retry. Screen 01 SHALL also show the greeting "Hola" over
+"<first name>!" in the headline style (no plan subtitle), the `JoinedCard` with the plan's Ready to
+Assign ("Listo para asignar") and the number of envelopes ("Sobres activos"), and the Reportes
+button. The "+" of the card (→ 03, `add-monthly-assignment`) and Reportes (→ 17, `add-reports`)
+belong to other changes: they SHALL be drawn in their muted disabled look and SHALL NOT react to a
+tap until those screens exist.
 
 #### Scenario: Goals carousel
 - **WHEN** the plan has Vacaciones (600.000 due in December, 360.000 saved) and Emergencia goals
@@ -429,9 +434,12 @@ lavender tint with the icon) under glass panels with white text, a back button, 
 with "<N> meses restantes" ("Vence este mes" in the due month, "Vencida" after it) and a "…" button
 that opens 40; the "Objetivo", "Ya ahorrado" and "Falta" amounts with the stripe progress bar
 (chartreuse stripes for what is saved and dots for what is missing); four tiles, "Últimos aportes"
-and "Plan de aportes" (→ 22), "Mover dinero" (→ 24) and "Ajustar objetivo" (→ 23); and the primary
-button "Asignar a esta meta", which belongs to the monthly assignment change and SHALL be disabled
-here. Over a photo the status bar SHALL use light icons. A viewer SHALL see no "Mover dinero" and no
+and "Plan de aportes" (→ 22), "Mover dinero" (→ 24) and "Ajustar objetivo" (→ 23); and the button
+"Asignar a esta meta", whose destination 03 belongs to the monthly assignment change: until that
+screen exists it SHALL be drawn disabled (muted, not chartreuse) with the caption "Disponible con
+la asignación mensual" and SHALL NOT react to a tap. The photo SHALL be darkened by a scrim so the
+white text and the glass panels keep a contrast of at least 4.5 : 1 whatever the photo. Over a
+photo the status bar SHALL use light icons. A viewer SHALL see no "Mover dinero" and no
 "Ajustar objetivo" tile and no "…" menu.
 
 #### Scenario: Goal in progress

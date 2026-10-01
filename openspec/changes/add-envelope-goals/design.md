@@ -157,11 +157,15 @@ cycle). `activityTotal` is the list's `total`.
    amount is `400`.
 2. The month's figures are calculated once; if `amountMinor` is greater than the source's Available
    (including carryover) the call is `409` with the message "The source envelope has less available
-   than the amount". The check and the change run inside an in-process per-plan queue (the app is a single
-   process; a database lock held across the check would starve the connection pool under load), so two
-   concurrent moves cannot both spend the same available money (20 concurrent moves of 5.000 over a
-   60.000 source: exactly 12 succeed). An expense recorded at the same instant is not queued with the
-   moves and can still leave the source overspent, a state the app already represents.
+   than the amount". The check and the change run in one database transaction that first locks the source
+   envelope's row (`SELECT ... FOR UPDATE NOWAIT`), and the assignment change is made with that
+   transaction's `EntityManager`, so two moves out of the same envelope never overlap: the second one
+   starts after the first committed and sees its result. A move that finds the row locked (`55P03`)
+   releases its connection and retries after a short pause instead of waiting on the lock: waiting
+   inside the transaction held one pool connection per waiter and starved the running move, whose
+   reads of the engine's facts use other connections (20 concurrent moves of 5.000 over a 60.000
+   source: exactly 12 succeed, 8 get `409`, none times out). An expense recorded at the same instant
+   does not take that lock and can still leave the source overspent, a state the app already represents.
 3. One new method of `AssignmentsService`, `shiftAssignments(planId, month, deltas)`, applies
    `-amount` and `+amount` in one database transaction with `INSERT ... ON CONFLICT DO UPDATE SET
    amount_minor = assignments.amount_minor + EXCLUDED.amount_minor`, so there is no read-modify-write
@@ -292,8 +296,13 @@ packages/ui/lib/src/...       # see UI components
 - **01 carousel.** `HomeController` also depends on `EnvelopesController` and exposes the lines whose
   goal is `targetByDate`; the carousel is a `PageView` with a fractional viewport (neighbors peek, as in
   the design), a `UiPageDots`-style indicator and a last "+ Nueva meta" card; empty, loading (skeleton
-  card) and error (retry) states per PRD-ux-spec.md §5. The Ready to Assign card, its "+" and the
-  Reportes button are RRG-51 and RRG-54: they stay out, and the header keeps the avatar.
+  card) and error (retry) states per PRD-ux-spec.md §5. The cards are drawn rotated a few degrees
+  (the centered one and the peeking neighbors, from the page offset), and the page indicator sits at
+  the right of the "Metas" title. The greeting is "Hola" over "<first name>!" in the headline style,
+  without a plan subtitle. The `UiJoinedCard` "Listo para asignar" / "Sobres activos" and the Reportes
+  button (a `UiIconButton`) are drawn as the design has them, but their destinations (03 and 17)
+  belong to RRG-51 and RRG-54 and do not exist yet: the "+" of the card and Reportes are drawn in their
+  muted disabled look and do nothing, so there is no dead tap that looks live.
 - **22.** Back and pencil (hidden for a viewer, who is the plan's `viewer` role from `PlansController`),
   icon, name 30, group, a card of three figures, the goal row (`UiGoalRow`), "Actividad de <mes>" with
   `buildDayGroups` and `transactionRow` over `EnvelopeDetail.activity` (tap opens 12 with the
@@ -308,8 +317,13 @@ packages/ui/lib/src/...       # see UI components
   clear a goal, and it is the chip 31 already has.
 - **05.** `UiGoalBackdrop` (photo or lavender tint with the icon), a top glass bar (back, name and "N
   meses restantes", "…" → 40), `UiGoalSummary` (Objetivo, Ya ahorrado, Falta, stripes and dots), four
-  `UiGlassTile`s and the disabled "Asignar a esta meta". Status bar icons light over the photo
-  (`SystemUiOverlayStyle`, PRD-ux-spec.md §6.1 rule 8).
+  `UiGlassTile`s and "Asignar a esta meta". The backdrop darkens the photo with a uniform scrim plus a
+  gradient so the white texts and the glass panels keep contrast on any photo. §9.5 sends "Asignar a
+  esta meta" to 03, which RRG-51 builds: until then the button is drawn disabled (muted grey, not
+  chartreuse) with the caption "Disponible con la asignación mensual" and does nothing; the alternative
+  of routing it to 24 was rejected because moving money between envelopes is not assigning Ready to
+  Assign money. Status bar icons light over the photo (`SystemUiOverlayStyle`, PRD-ux-spec.md §6.1
+  rule 8). `UiButton` gains a disabled look (muted, no chartreuse) when it has no handler.
 - **40 and 50.** `showGoalOptionsSheet` (`UiSheet`, `UiMenuRow`s; "Eliminar meta" reuses 43 and then
   deletes the envelope and goes to 01) and `showGoalPhotoSheet`: the preview, "Elegir de la galería" and
   "Sacar una foto" (`image_picker`; a pick over 5 MB or of another format is refused client-side with
