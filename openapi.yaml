@@ -539,6 +539,42 @@ paths:
                 $ref: '#/components/schemas/EnvelopeTemplate'
         '401':
           $ref: '#/components/responses/Unauthorized'
+  /envelope-photo-suggestions:
+    get:
+      tags: [Envelopes]
+      operationId: listPhotoSuggestions
+      summary: List the suggested goal photos
+      description: The same four suggestions for everyone, in order (`vacaciones`, `auto`, `emergencia`, `mudanza`), each with the path of its image.
+      responses:
+        '200':
+          description: The suggested photos.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PhotoSuggestion'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /envelope-photo-suggestions/{suggestionId}/image:
+    get:
+      tags: [Envelopes]
+      operationId: getPhotoSuggestionImage
+      summary: Get the image of a suggested goal photo
+      parameters:
+        - $ref: '#/components/parameters/SuggestionId'
+      responses:
+        '200':
+          description: The image.
+          content:
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
   /plans/{planId}/envelope-groups:
     get:
       tags: [Envelopes]
@@ -816,6 +852,41 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
+  /plans/{planId}/envelopes/move:
+    post:
+      tags: [Envelopes]
+      operationId: moveMoney
+      summary: Move money between two envelopes inside a month (owner or editor)
+      description: |
+        Subtracts the amount from the source's assignment of the month and adds it to the
+        destination's, atomically and without creating a transaction. Ready to Assign, the other
+        envelopes and the other months do not change. The amount cannot exceed the source's
+        Available in that month (`409`).
+      parameters:
+        - $ref: '#/components/parameters/PlanId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MoveMoneyRequest'
+      responses:
+        '200':
+          description: The month, its Ready to Assign and the updated lines of both envelopes.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MoveMoneyResult'
+        '400':
+          $ref: '#/components/responses/ValidationFailed'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/MoveExceedsAvailable'
   /plans/{planId}/envelopes/{envelopeId}:
     get:
       tags: [Envelopes]
@@ -872,13 +943,208 @@ paths:
       tags: [Envelopes]
       operationId: deleteEnvelope
       summary: Delete an envelope (owner or editor)
-      description: Its assignments are deleted with it, so its money returns to Ready to Assign. Transactions are kept without an envelope; payees that suggested it lose the suggestion.
+      description: Its assignments are deleted with it, so its money returns to Ready to Assign. Transactions are kept without an envelope; payees that suggested it lose the suggestion. Its goal and its photo file are deleted too.
       parameters:
         - $ref: '#/components/parameters/PlanId'
         - $ref: '#/components/parameters/EnvelopeId'
       responses:
         '204':
           description: The envelope was deleted.
+        '400':
+          $ref: '#/components/responses/ValidationFailed'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /plans/{planId}/envelopes/{envelopeId}/goal:
+    put:
+      tags: [Envelopes]
+      operationId: setEnvelopeGoal
+      summary: Set or replace the goal of an envelope (owner or editor)
+      description: A `monthly` goal takes no `dueDate`; a `targetByDate` goal requires one, in the current month or later.
+      parameters:
+        - $ref: '#/components/parameters/PlanId'
+        - $ref: '#/components/parameters/EnvelopeId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EnvelopeGoal'
+      responses:
+        '200':
+          description: The envelope with its goal.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Envelope'
+        '400':
+          $ref: '#/components/responses/ValidationFailed'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags: [Envelopes]
+      operationId: clearEnvelopeGoal
+      summary: Remove the goal of an envelope (owner or editor)
+      description: Responds `200` also when the envelope had no goal.
+      parameters:
+        - $ref: '#/components/parameters/PlanId'
+        - $ref: '#/components/parameters/EnvelopeId'
+      responses:
+        '200':
+          description: The envelope without a goal.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Envelope'
+        '400':
+          $ref: '#/components/responses/ValidationFailed'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /plans/{planId}/envelopes/{envelopeId}/detail:
+    get:
+      tags: [Envelopes]
+      operationId: getEnvelopeDetail
+      summary: Get an envelope with the figures and the activity of a month
+      description: The envelope line of the month (figures, state, goal status), its carryover and the month's transactions that have a portion on the envelope, newest first, at most 100.
+      parameters:
+        - $ref: '#/components/parameters/PlanId'
+        - $ref: '#/components/parameters/EnvelopeId'
+        - $ref: '#/components/parameters/Month'
+      responses:
+        '200':
+          description: The envelope detail.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnvelopeDetail'
+        '400':
+          $ref: '#/components/responses/ValidationFailed'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /plans/{planId}/envelopes/{envelopeId}/photo:
+    get:
+      tags: [Envelopes]
+      operationId: getEnvelopePhoto
+      summary: Get the photo of an envelope (any member)
+      description: Served only with a valid bearer token to a member of the plan; `404` for a non-member and for an envelope without a photo.
+      parameters:
+        - $ref: '#/components/parameters/PlanId'
+        - $ref: '#/components/parameters/EnvelopeId'
+      responses:
+        '200':
+          description: The photo, a JPEG resized to at most 1080 pixels wide.
+          content:
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+        '400':
+          $ref: '#/components/responses/ValidationFailed'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    post:
+      tags: [Envelopes]
+      operationId: uploadEnvelopePhoto
+      summary: Set or replace the photo of an envelope (owner or editor)
+      description: |
+        A JPEG, PNG or WebP image of at most 5 MB in the multipart field `file`. The type is decided
+        by the content of the file, not by its name or declared type. The server resizes it to at
+        most 1080 pixels wide, strips its metadata and stores it as JPEG; the previous photo file is
+        deleted.
+      parameters:
+        - $ref: '#/components/parameters/PlanId'
+        - $ref: '#/components/parameters/EnvelopeId'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: The image (JPEG, PNG or WebP, at most 5 MB).
+      responses:
+        '200':
+          description: The envelope with its new `photoUrl`.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Envelope'
+        '400':
+          $ref: '#/components/responses/ValidationFailed'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '413':
+          $ref: '#/components/responses/PayloadTooLarge'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaType'
+    delete:
+      tags: [Envelopes]
+      operationId: deleteEnvelopePhoto
+      summary: Remove the photo of an envelope (owner or editor)
+      description: Deletes the stored file; responds `200` also when the envelope had no photo.
+      parameters:
+        - $ref: '#/components/parameters/PlanId'
+        - $ref: '#/components/parameters/EnvelopeId'
+      responses:
+        '200':
+          description: The envelope without `photoUrl`.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Envelope'
+        '400':
+          $ref: '#/components/responses/ValidationFailed'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /plans/{planId}/envelopes/{envelopeId}/photo/suggested:
+    post:
+      tags: [Envelopes]
+      operationId: applySuggestedEnvelopePhoto
+      summary: Set a suggested photo as the photo of an envelope (owner or editor)
+      description: The suggestion goes through the same resizing and storage as an upload.
+      parameters:
+        - $ref: '#/components/parameters/PlanId'
+        - $ref: '#/components/parameters/EnvelopeId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SuggestedPhotoRequest'
+      responses:
+        '200':
+          description: The envelope with its new `photoUrl`.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Envelope'
         '400':
           $ref: '#/components/responses/ValidationFailed'
         '401':
@@ -1436,6 +1702,14 @@ components:
       required: true
       schema:
         $ref: '#/components/schemas/Uuid'
+    SuggestionId:
+      name: suggestionId
+      in: path
+      required: true
+      description: Id of a suggested goal photo (`vacaciones`, `auto`, `emergencia` or `mudanza`).
+      schema:
+        type: string
+        examples: [vacaciones]
     Month:
       name: month
       in: query
@@ -1556,6 +1830,36 @@ components:
             statusCode: 409
             message: The plan already has envelopes
             error: Conflict
+    MoveExceedsAvailable:
+      description: The amount is greater than the source envelope's Available in the month; nothing was moved.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            statusCode: 409
+            message: The source envelope has less available than the amount
+            error: Conflict
+    PayloadTooLarge:
+      description: The uploaded file is larger than 5 MB.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            statusCode: 413
+            message: File too large
+            error: Payload Too Large
+    UnsupportedMediaType:
+      description: The file is not a JPEG, PNG or WebP image (decided by its content) or cannot be decoded.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            statusCode: 415
+            message: The photo must be a JPEG, PNG or WebP image
+            error: Unsupported Media Type
     ValidationFailed:
       description: The request failed validation; `message` lists one entry per violated constraint.
       content:
@@ -2026,12 +2330,77 @@ components:
           type: integer
           minimum: 0
           description: Zero-based place inside its group (or among the envelopes without a group).
+        goal:
+          $ref: '#/components/schemas/EnvelopeGoal'
+        photoUrl:
+          type: string
+          description: Path, relative to the API, of the envelope's photo (served only to members with a bearer token). It carries a `v` version query, so a changed photo is a new URL. Absent when the envelope has no photo.
+          examples: ['/plans/0d9c1d7e-6a0c-4a77-9d0e-6d1f2a3b4c5d/envelopes/7f1f6a64-3a60-4d5c-9a43-0a5c8c1f2b11/photo?v=1790000000000']
         createdAt:
           $ref: '#/components/schemas/Timestamp'
+    EnvelopeGoalType:
+      type: string
+      description: '`monthly` is an amount to assign every month; `targetByDate` is an amount to have available by a due date.'
+      enum: [monthly, targetByDate]
+    EnvelopeGoal:
+      type: object
+      description: |
+        The goal of an envelope. A `monthly` goal takes no `dueDate`; a `targetByDate` goal requires
+        one (a date in the current month or later, in the plan's time zone).
+      required: [type, targetMinor]
+      additionalProperties: false
+      properties:
+        type:
+          $ref: '#/components/schemas/EnvelopeGoalType'
+        targetMinor:
+          type: integer
+          minimum: 1
+          examples: [180000]
+        dueDate:
+          type: string
+          format: date
+          examples: ['2026-12-15']
+    EnvelopeState:
+      type: string
+      description: |
+        Derived state of an envelope in a month, computed only by the API: `overspent` when its
+        Available is negative; otherwise `underfunded` when it has a goal and the amount assigned in
+        the month is lower than the required amount; otherwise `funded`.
+      enum: [funded, underfunded, overspent]
+    GoalStatus:
+      type: object
+      description: Progress of an envelope's goal in a month, derived from the goal and the budget engine's figures.
+      required: [requiredMinor, missingMinor, savedMinor, remainingMinor, percent]
+      properties:
+        requiredMinor:
+          type: integer
+          minimum: 0
+          description: Amount to assign in the month to be on track (the target for a monthly goal; the shortfall over the carryover spread over the months left, rounded up, for a goal with a date).
+        missingMinor:
+          type: integer
+          minimum: 0
+          description: What the month still needs, `max(0, required - assigned)`.
+        savedMinor:
+          type: integer
+          minimum: 0
+          description: Assigned of the month for a monthly goal; Available (floored at 0) for a goal with a date.
+        remainingMinor:
+          type: integer
+          minimum: 0
+          description: '`max(0, target - saved)`.'
+        percent:
+          type: integer
+          minimum: 0
+          maximum: 100
+          description: Saved over target, floored and capped at 100.
+        monthsRemaining:
+          type: integer
+          minimum: 0
+          description: Months from the viewed month to the due month; only for a goal with a date, 0 in the due month and after it.
     EnvelopeLine:
       type: object
-      description: An envelope with the figures the budget engine derives for a month.
-      required: [envelope, assignedMinor, spentMinor, availableMinor]
+      description: An envelope with the figures the budget engine derives for a month, its state and, with a goal, the goal status.
+      required: [envelope, assignedMinor, spentMinor, availableMinor, state]
       properties:
         envelope:
           $ref: '#/components/schemas/Envelope'
@@ -2042,6 +2411,81 @@ components:
           description: Net outflow of the month (expenses minus income sent to the envelope); negative when income exceeds expenses.
         availableMinor:
           $ref: '#/components/schemas/MoneyMinor'
+        state:
+          $ref: '#/components/schemas/EnvelopeState'
+        goalStatus:
+          $ref: '#/components/schemas/GoalStatus'
+    EnvelopeDetail:
+      type: object
+      description: One envelope with the figures and the activity of a month.
+      required: [month, line, carryoverMinor, activity, activityTotal]
+      properties:
+        month:
+          $ref: '#/components/schemas/MonthKey'
+        line:
+          $ref: '#/components/schemas/EnvelopeLine'
+        carryoverMinor:
+          $ref: '#/components/schemas/MoneyMinor'
+        activity:
+          type: array
+          description: Transactions of the month with a portion on the envelope, newest first, at most 100.
+          items:
+            $ref: '#/components/schemas/Transaction'
+        activityTotal:
+          type: integer
+          minimum: 0
+          description: Number of transactions of the month with a portion on the envelope.
+    MoveMoneyRequest:
+      type: object
+      required: [fromEnvelopeId, toEnvelopeId, amountMinor]
+      additionalProperties: false
+      properties:
+        fromEnvelopeId:
+          $ref: '#/components/schemas/Uuid'
+        toEnvelopeId:
+          $ref: '#/components/schemas/Uuid'
+        amountMinor:
+          type: integer
+          minimum: 1
+          examples: [6200]
+        month:
+          $ref: '#/components/schemas/MonthKey'
+    MoveMoneyResult:
+      type: object
+      required: [month, readyToAssignMinor, from, to]
+      properties:
+        month:
+          $ref: '#/components/schemas/MonthKey'
+        readyToAssignMinor:
+          $ref: '#/components/schemas/MoneyMinor'
+          description: Ready to Assign of the month; a move never changes it.
+        from:
+          $ref: '#/components/schemas/EnvelopeLine'
+        to:
+          $ref: '#/components/schemas/EnvelopeLine'
+    PhotoSuggestionId:
+      type: string
+      enum: [vacaciones, auto, emergencia, mudanza]
+    PhotoSuggestion:
+      type: object
+      required: [id, name, imageUrl]
+      properties:
+        id:
+          $ref: '#/components/schemas/PhotoSuggestionId'
+        name:
+          type: string
+          examples: [Vacaciones]
+        imageUrl:
+          type: string
+          description: Path, relative to the API, of the suggestion's image.
+          examples: ['/envelope-photo-suggestions/vacaciones/image']
+    SuggestedPhotoRequest:
+      type: object
+      required: [suggestionId]
+      additionalProperties: false
+      properties:
+        suggestionId:
+          $ref: '#/components/schemas/PhotoSuggestionId'
     EnvelopeList:
       type: object
       required: [month, readyToAssignMinor, items]
@@ -2068,6 +2512,8 @@ components:
           $ref: '#/components/schemas/Uuid'
         icon:
           $ref: '#/components/schemas/EnvelopeIcon'
+        goal:
+          $ref: '#/components/schemas/EnvelopeGoal'
     UpdateEnvelopeRequest:
       type: object
       additionalProperties: false
