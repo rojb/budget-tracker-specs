@@ -1020,7 +1020,7 @@ paths:
       tags: [Envelopes]
       operationId: getEnvelopeDetail
       summary: Get an envelope with the figures and the activity of a month
-      description: The envelope line of the month (figures, state, goal status), its carryover and the month's transactions that have a portion on the envelope, newest first, at most 100.
+      description: The envelope line of the month (figures, state, goal status), its carryover and the month's transactions that have a portion on the envelope, newest first by `createdAt` (ties by id), at most 100.
       parameters:
         - $ref: '#/components/parameters/PlanId'
         - $ref: '#/components/parameters/EnvelopeId'
@@ -1333,7 +1333,7 @@ paths:
       tags: [Accounts]
       operationId: listTransfers
       summary: List transfers between accounts
-      description: Newest first; with `accountId`, only transfers that leave or enter that account.
+      description: Newest first by `createdAt` (ties by id); with `accountId`, only transfers that leave or enter that account.
       parameters:
         - $ref: '#/components/parameters/PlanId'
         - name: accountId
@@ -1418,8 +1418,9 @@ paths:
       operationId: listTransactions
       summary: List transactions (movements)
       description: |
-        Newest first by `occurredAt` (ties by creation instant). Transactions that were deleted are
-        not listed. Every filter is optional and they combine with AND. Dates and times are local to
+        Newest first by registration instant, `createdAt` (ties by id): the transaction recorded last
+        comes first, whatever `occurredAt` it carries. `occurredAt` still decides the month, the
+        balances and the date and time filters. Transactions that were deleted are not listed. Every filter is optional and they combine with AND. Dates and times are local to
         the plan's time zone. `summary` totals every matching transaction (not only the page) with
         its whole amount. Transfers between accounts are not transactions and are not listed here.
       parameters:
@@ -2647,7 +2648,7 @@ components:
           $ref: '#/components/schemas/MoneyMinor'
         activity:
           type: array
-          description: Transactions of the month with a portion on the envelope, newest first, at most 100.
+          description: Transactions of the month with a portion on the envelope, newest first by `createdAt` (ties by id), at most 100.
           items:
             $ref: '#/components/schemas/Transaction'
         activityTotal:
