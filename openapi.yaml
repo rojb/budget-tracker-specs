@@ -43,6 +43,8 @@ tags:
     description: Expenses and income of a plan, with split payments, and the movements list (FR-06, FR-07, FR-08, FR-14).
   - name: Sharing
     description: Invitation codes, joining a plan and managing its members (FR-27).
+  - name: Months
+    description: Monthly assignment, the aggregated month view and the month close (FR-09, FR-10, FR-11, FR-12, FR-15, FR-16).
 paths:
   /auth/register:
     post:
@@ -1631,6 +1633,116 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
+  /plans/{planId}/months/{month}:
+    get:
+      tags: [Months]
+      operationId: getMonthSummary
+      summary: Get the figures of a budget month
+      description: |
+        The figures the budget engine derives for the month: Σ account balances, Σ Available, the
+        amount reserved for later months and the Ready to Assign (for a future month, the current
+        month's), plus the total assigned in the month and how many envelopes are in each state.
+      parameters:
+        - $ref: '#/components/parameters/PlanId'
+        - $ref: '#/components/parameters/MonthPath'
+      responses:
+        '200':
+          description: The figures of the month.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MonthSummary'
+        '400':
+          $ref: '#/components/responses/ValidationFailed'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /plans/{planId}/months/{month}/assignments:
+    post:
+      tags: [Months]
+      operationId: assignToEnvelope
+      summary: Add money to an envelope's assignment of a month (owner or editor)
+      description: |
+        Adds the amount to the envelope's assignment of the month (any month: past, current or
+        future); a negative amount takes money back. Assigning more than the Ready to Assign is
+        allowed and leaves it negative.
+      parameters:
+        - $ref: '#/components/parameters/PlanId'
+        - $ref: '#/components/parameters/MonthPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssignMoneyRequest'
+      responses:
+        '200':
+          description: The month, its Ready to Assign and the updated line of the envelope.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssignMoneyResult'
+        '400':
+          $ref: '#/components/responses/ValidationFailed'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /plans/{planId}/months/{month}/close:
+    get:
+      tags: [Months]
+      operationId: getMonthClose
+      summary: Get the close of a month into the next one
+      description: |
+        What carries into the next month (positive Available), what is deducted from its Ready to
+        Assign (overspending), the next month's balance, Available and reserved figures, and
+        whether the close was already confirmed.
+      parameters:
+        - $ref: '#/components/parameters/PlanId'
+        - $ref: '#/components/parameters/MonthPath'
+      responses:
+        '200':
+          description: The close of the month.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MonthClose'
+        '400':
+          $ref: '#/components/responses/ValidationFailed'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    post:
+      tags: [Months]
+      operationId: confirmMonthClose
+      summary: Confirm the close of an ended month (owner or editor)
+      description: |
+        Records that the close of the month was seen; no figure changes. Confirming again changes
+        nothing. Only a month before the current one can be confirmed (`409`).
+      parameters:
+        - $ref: '#/components/parameters/PlanId'
+        - $ref: '#/components/parameters/MonthPath'
+      responses:
+        '200':
+          description: The close of the month, confirmed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MonthClose'
+        '400':
+          $ref: '#/components/responses/ValidationFailed'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/MonthNotEnded'
   /health:
     get:
       tags: [Health]
@@ -1714,6 +1826,13 @@ components:
       name: month
       in: query
       description: Budget month as YYYY-MM; the current month in the plan's time zone when absent.
+      schema:
+        $ref: '#/components/schemas/MonthKey'
+    MonthPath:
+      name: month
+      in: path
+      required: true
+      description: Budget month as YYYY-MM.
       schema:
         $ref: '#/components/schemas/MonthKey'
     AccountId:
@@ -1829,6 +1948,16 @@ components:
           example:
             statusCode: 409
             message: The plan already has envelopes
+            error: Conflict
+    MonthNotEnded:
+      description: The month has not ended yet, so its close cannot be confirmed.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            statusCode: 409
+            message: The month has not ended yet
             error: Conflict
     MoveExceedsAvailable:
       description: The amount is greater than the source envelope's Available in the month; nothing was moved.
@@ -2463,6 +2592,117 @@ components:
           $ref: '#/components/schemas/EnvelopeLine'
         to:
           $ref: '#/components/schemas/EnvelopeLine'
+    MonthSummary:
+      type: object
+      description: The figures the budget engine derives for one month.
+      required: [month, currentMonth, isFuture, balanceMinor, availableMinor, futureAssignedMinor, readyToAssignMinor, assignedMinor, envelopeCount, overspentCount, underfundedCount, fundedCount]
+      properties:
+        month:
+          $ref: '#/components/schemas/MonthKey'
+        currentMonth:
+          $ref: '#/components/schemas/MonthKey'
+          description: Current month in the plan's time zone.
+        isFuture:
+          type: boolean
+          description: True when the month is after the current month.
+        balanceMinor:
+          $ref: '#/components/schemas/MoneyMinor'
+          description: Σ balances of the active accounts at the end of the month.
+        availableMinor:
+          $ref: '#/components/schemas/MoneyMinor'
+          description: Σ Available of every envelope in the month.
+        futureAssignedMinor:
+          $ref: '#/components/schemas/MoneyMinor'
+          description: Σ Assigned in the months after this one.
+        readyToAssignMinor:
+          $ref: '#/components/schemas/MoneyMinor'
+          description: Ready to Assign of the month; for a future month, the current month's.
+        assignedMinor:
+          $ref: '#/components/schemas/MoneyMinor'
+          description: Σ Assigned in the month.
+        envelopeCount:
+          type: integer
+          minimum: 0
+        overspentCount:
+          type: integer
+          minimum: 0
+        underfundedCount:
+          type: integer
+          minimum: 0
+        fundedCount:
+          type: integer
+          minimum: 0
+    AssignMoneyRequest:
+      type: object
+      required: [envelopeId, amountMinor]
+      additionalProperties: false
+      properties:
+        envelopeId:
+          $ref: '#/components/schemas/Uuid'
+        amountMinor:
+          type: integer
+          description: Amount added to the envelope's assignment of the month; negative takes money back, never 0.
+          examples: [6200]
+    AssignMoneyResult:
+      type: object
+      required: [month, readyToAssignMinor, line]
+      properties:
+        month:
+          $ref: '#/components/schemas/MonthKey'
+        readyToAssignMinor:
+          $ref: '#/components/schemas/MoneyMinor'
+          description: Ready to Assign of the month after the assignment; negative when over-assigned.
+        line:
+          $ref: '#/components/schemas/EnvelopeLine'
+    CloseLine:
+      type: object
+      required: [envelopeId, name, amountMinor]
+      properties:
+        envelopeId:
+          $ref: '#/components/schemas/Uuid'
+        name:
+          type: string
+        amountMinor:
+          type: integer
+          minimum: 1
+          description: Amount carried, or deducted (positive), in minor units.
+    MonthClose:
+      type: object
+      description: The close of a month into the next one (FR-12).
+      required: [fromMonth, toMonth, carried, deducted, totalDeductedMinor, readyToAssignFromMinor, readyToAssignToMinor, balanceMinor, availableMinor, futureAssignedMinor, confirmed]
+      properties:
+        fromMonth:
+          $ref: '#/components/schemas/MonthKey'
+        toMonth:
+          $ref: '#/components/schemas/MonthKey'
+        carried:
+          type: array
+          description: Envelopes whose positive Available carries into the next month.
+          items:
+            $ref: '#/components/schemas/CloseLine'
+        deducted:
+          type: array
+          description: Overspent envelopes, deducted from the next month's Ready to Assign; they restart at 0.
+          items:
+            $ref: '#/components/schemas/CloseLine'
+        totalDeductedMinor:
+          $ref: '#/components/schemas/MoneyMinor'
+        readyToAssignFromMinor:
+          $ref: '#/components/schemas/MoneyMinor'
+        readyToAssignToMinor:
+          $ref: '#/components/schemas/MoneyMinor'
+        balanceMinor:
+          $ref: '#/components/schemas/MoneyMinor'
+          description: Σ account balances at the end of the next month.
+        availableMinor:
+          $ref: '#/components/schemas/MoneyMinor'
+          description: Σ Available of the next month.
+        futureAssignedMinor:
+          $ref: '#/components/schemas/MoneyMinor'
+          description: Σ Assigned after the next month; balance − available − this = readyToAssignTo.
+        confirmed:
+          type: boolean
+          description: True once an owner or editor confirmed the close.
     PhotoSuggestionId:
       type: string
       enum: [vacaciones, auto, emergencia, mudanza]
