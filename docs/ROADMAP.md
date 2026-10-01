@@ -248,7 +248,9 @@ real entre los dos devs (ver §5).
    resuelve la verificación de forma manual (Swagger UI/Prism + Widgetbook) por instrucción
    explícita del usuario, pero deja constancia de que eso relaja el criterio de aceptación
    original del PRD — conviene que el equipo lo confirme con la cátedra si el criterio de
-   evaluación lo exige formalmente.
+   evaluación lo exige formalmente. **KR4** (cobertura de tests ≥ 80 %) y **KR5** (≥ 12 casos de
+   prueba) tampoco se cumplen tal como están escritos; el PRD (nota ⁽²⁾ de los Key Results)
+   documenta qué los reemplaza. La decisión de no tener tests se mantiene.
 6. **Owner backend/frontend por persona (§10 del PRD, "Persona A backend / Persona B
    frontend"):** ese timeline quedó reemplazado por la decisión de `team-coordination-setup.md`
    (split por feature, full-stack). `PRD.md` y `ALCANCE.md` se actualizaron en T3 de
