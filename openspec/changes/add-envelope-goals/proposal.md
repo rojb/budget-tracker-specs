@@ -15,20 +15,25 @@ envelopes, and an optional goal photo.
 - Frontend: `GoalCard` (lavender tint + icon when no photo), progress indicator (chartreuse
   stripes/dots); screens 22 Detalle de sobre, 23 Editar sobre (goal fields), 05 Detalle de meta,
   40 Opciones de meta, 50 Foto de la meta, 24 Mover dinero, 01 Inicio (goal carousel).
-- `openapi.yaml`: goal fields on the envelope endpoints, money-move endpoint, photo upload
-  endpoint.
+- `openapi.yaml`: goal, photo and state fields on the envelope schemas; set and clear goal, envelope
+  detail, move money, upload, serve and delete photo, suggested photos list, image and apply.
 
 ## Capabilities
 
 ### New Capabilities
 
-None.
+- `envelope-goals`: the envelope goal (monthly, or amount by a date), the required amount for a
+  month, the derived funded/underfunded/overspent states (one server-side definition that the plan
+  filters of RRG-51 reuse), the envelope detail, money movement between envelopes inside a month,
+  the goal photo (upload, replace, remove, suggested set, authenticated serving) and the screens
+  22, 23, 05, 40, 50, 24 and the goals carousel of 01.
 
 ### Modified Capabilities
 
-- `envelopes`: adds goal fields, derived funded/underfunded/overspent states, inter-envelope
-  money movement, and goal photo upload. Requires the `envelopes` capability spec from
-  `add-envelopes` to exist first.
+- `envelopes`: the envelope carries its goal, state and photo; row tap opens 22; 31 gains the
+  objective block; the entry to 43 becomes the trash of 23 (the temporary long press is removed).
+- `ui-design-system`: adds `GoalCard`, the goal progress presentations and the building blocks of
+  05 and 50, with their Widgetbook use cases.
 
 ## Impact
 
