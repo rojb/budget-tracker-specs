@@ -28,7 +28,12 @@ La interfaz es de diseño propio: de YNAB se toma el método, no la apariencia.
 Available(sobre, mes)  = Assigned(sobre, mes) + Carryover(sobre, mes-1) − Spent(sobre, mes)
 
 ReadyToAssign(mes)     = Σ saldos de cuentas − Σ Available de todos los sobres
+                         − Σ Assigned(sobre, meses > mes)
 ```
+
+El último término es el dinero ya reservado para meses futuros (FR-10); sin él, una
+asignación anticipada contaría dos veces el mismo peso. Ejemplo del diseño (29/09):
+`$ 1.000.000 − $ 931.800 − $ 20.000 = $ 48.200`.
 
 Ningún valor derivado se persiste: todos se recomputan desde las transacciones y
 asignaciones. Es la condición que permite editar o borrar una transacción de un mes
