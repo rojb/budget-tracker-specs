@@ -93,13 +93,14 @@ lib/features/envelopes/plan_page.dart             # wires the above into 02/04
 ```
 
 - **Viewed month.** `EnvelopesController` gains `showMonth(String month)`; `load()` keeps the
-  viewed month, so 22/24/31 see the same month as 02. `MonthController` loads the summary of that
+  viewed month, so 22/24/31 see the same month as 02. `boardOf(month)` reads another month without
+  changing it (the month chips of 03). `MonthController` loads the summary of that
   month (`currentMonth`, `isFuture`, counts) and owns the selected status filter.
 - **02/04.** The month switch calls `showMonth(±1)`. With `isFuture` the page renders the 04 notice,
   "<assigned> asignado" headers and rows with the assigned amount; otherwise the usual 02 rows.
   The filter chips filter `linesOf(group)` by the API's `state` ("Cubiertos" = `funded` with money
   assigned or available).
-- **03/53.** Route `/plan/assign?month=&envelopeId=`, pushed on the root navigator. The envelope
+- **03/53.** Route `/assign?month=&envelopeId=`, pushed on the root navigator. The envelope
   carousel is a `PageView` of cards; the quick chips are the chosen envelope's need (−Available when
   overspent, `goalStatus.missingMinor` when underfunded), 10.000, 20.000 and 50.000. Tapping the
   capsule or the calculator switches to 53, which reuses `amount_expression.dart` (FR-18) with the
@@ -107,7 +108,7 @@ lib/features/envelopes/plan_page.dart             # wires the above into 02/04
 - **25.** After the Plan tab loads the current month, `MonthController` asks for the close of the
   previous month; when it is not confirmed and has carried or deducted lines (and the caller can
   write), it pushes `/plan/close/:month`. "Empezar <mes>" confirms, shows "Mes de <mes> abierto"
-  and pops; the close button pops without confirming.
+  and pops; the close button pops without confirming. Route `/month-close/:month`.
 
 ## UI components
 
@@ -120,6 +121,8 @@ Changes in `packages/ui` (stories, review by the other dev, docs/COLABORACION.md
   `warning`, "Falta" with `clock`, "Cubiertos" with `check`).
 - **`UiInfoNote` (modified)**: optional trailing action (`actionLabel`, `onAction`), a black pill,
   for the 04 notice ("Hoy").
+- **`UiEnvelopeRow` (modified)**: optional `subtitleMaxLines` (default 1), 2 in the compact card of
+  53 so "→ quedaría en <amount>" is never cut.
 - **`UiAssignCard` (new, molecule)**: the carousel card of 03: icon circle, percent, name,
   "<available> disponible" and a caption; lavender when selected, white otherwise.
 - **`UiCloseRow` (new, molecule)**: a line of 25: envelope name and its outcome, on one line, or
