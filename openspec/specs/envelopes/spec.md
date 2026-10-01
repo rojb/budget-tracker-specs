@@ -244,7 +244,7 @@ is not a member, or a plan that does not exist, SHALL receive `404`.
 
 ### Requirement: Plan tab with envelopes
 When the active plan has at least one envelope, the Plan tab SHALL show screen 02 Plan del mes for
-the current month: the `layers` button (→ 32), the search button (filters envelopes by name in
+the viewed month (the current one when the tab opens): the `layers` button (→ 32), the search button (filters envelopes by name in
 place), the month switch, the `JoinedCard` with "Listo para asignar" and the number of "Sobres
 activos", and, for each group in order, a group header (name, "<amount> disponible" subtotal and a
 "+" that opens 31 with that group preselected) followed by its envelopes as `EnvelopeRow`s;
@@ -252,9 +252,9 @@ envelopes without a group SHALL follow under "Sin grupo". An envelope row shows 
 "<spent> de <assigned>" and the available amount with its state taken from the API's `state`:
 Funded ("Disponible", or "Cubierto" with full stripes when it has a goal), Underfunded ("Falta
 <missing>" with partial stripes), Overspent (red, "Sobregirado") or Empty (nothing assigned, no
-goal). Tapping a row SHALL open 22 Detalle de sobre. The "+" of the `JoinedCard`, the status filter
-chips and the change of month belong to `add-monthly-assignment` and SHALL stay inert or
-placeholder routes here.
+goal). Tapping a row SHALL open 22 Detalle de sobre. The "+" of the `JoinedCard` (→ 03), the
+status filter chips, the change of month and the future month view are defined by the
+`monthly-assignment` capability.
 
 #### Scenario: Plan with a funded and an empty envelope
 - **WHEN** Transporte has 45.000 assigned and Alquiler nothing

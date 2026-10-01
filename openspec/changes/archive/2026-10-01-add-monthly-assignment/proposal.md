@@ -24,7 +24,8 @@ calc engine: the main plan view, future-month assignment, and month close.
 
 ### Modified Capabilities
 
-None.
+- `envelopes`: the Plan tab requirement stops leaving the "+" of the `JoinedCard`, the status
+  filters and the month change inert, and points to `monthly-assignment` for them.
 
 ## Impact
 
