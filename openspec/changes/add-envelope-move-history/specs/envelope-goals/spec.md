@@ -12,7 +12,7 @@ the shape of a listed transaction. `moves` SHALL hold the moves of money (FR-25)
 which the envelope was the source or the destination, newest first by registration instant
 (`createdAt`, ties by id), at most 100 of them, with `movesTotal` counting all of them; each item
 SHALL carry its `id`, its `direction` (`out` when the envelope was the source, `in` when it was the
-destination), the counterpart envelope (`counterpartId`, null when that envelope no longer exists,
+destination), the counterpart envelope (`counterpartId`, absent when that envelope no longer exists,
 and `counterpartName`), the positive `amountMinor`, the `month` it was made for and its `createdAt`.
 A move belongs to the month it was made for, not to the day it was registered. `spentMinor`, the
 assigned, available and carryover amounts SHALL be computed as if moves were not listed: a move is
@@ -125,7 +125,7 @@ not listed.
 
 #### Scenario: Envelope deleted later
 - **WHEN** an envelope that took part in a move is deleted
-- **THEN** the other envelope keeps the move in its detail with `counterpartId` null and the name the deleted envelope had, and a move whose two envelopes were deleted is removed
+- **THEN** the other envelope keeps the move in its detail with `counterpartId` absent and the name the deleted envelope had, and a move whose two envelopes were deleted is removed
 
 ### Requirement: Envelope detail screen
 Screen 22 Detalle de sobre SHALL open from an `EnvelopeRow` of 02 and from the tiles of 05. It SHALL

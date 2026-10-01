@@ -2,7 +2,7 @@
 
 ## 1. [specs]
 
-- [ ] 1.1 Update `openapi.yaml`: add the schema `EnvelopeMove` (`id`, `direction` `in`|`out`, `counterpartId` nullable, `counterpartName`, `amountMinor`, `month`, `createdAt`), add `moves` and `movesTotal` to `EnvelopeDetail` (both required), and say in `getEnvelopeDetail` and `moveMoney` that moves are listed and recorded. Verify `npx @redocly/cli lint openapi.yaml` reports no errors. Contract PR needs approval from both developers (docs/COLABORACION.md §4).
+- [ ] 1.1 Update `openapi.yaml`: add the schema `EnvelopeMove` (`id`, `direction` `in`|`out`, `counterpartId` optional, `counterpartName`, `amountMinor`, `month`, `createdAt`), add `moves` and `movesTotal` to `EnvelopeDetail` (both required), and say in `getEnvelopeDetail` and `moveMoney` that moves are listed and recorded. Verify `npx @redocly/cli lint openapi.yaml` reports no errors. Contract PR needs approval from both developers (docs/COLABORACION.md §4).
 
 ## 2. [back]
 

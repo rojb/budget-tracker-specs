@@ -61,7 +61,7 @@ The response and the figures are unchanged.
 | `getEnvelopeDetail` | `GET /plans/{planId}/envelopes/{envelopeId}/detail` | response `EnvelopeDetail` gains `moves` and `movesTotal` |
 | `moveMoney` | `POST /plans/{planId}/envelopes/move` | no schema change; description says the move is recorded |
 
-New schema `EnvelopeMove`: `id` (uuid), `direction` (`in` | `out`), `counterpartId` (uuid or null),
+New schema `EnvelopeMove`: `id` (uuid), `direction` (`in` | `out`), `counterpartId` (uuid, absent when the counterpart was deleted),
 `counterpartName` (string), `amountMinor` (positive integer), `month` (`MonthKey`), `createdAt`
 (date-time). `EnvelopeDetail.required` gains `moves` and `movesTotal`.
 
@@ -97,7 +97,7 @@ or the destination, ordered by `created_at DESC, id DESC`, `LIMIT 100`, plus a `
 
 Both envelope FKs are `ON DELETE SET NULL` and the names are stored, so deleting an envelope keeps the
 move in the surviving envelope's activity ("Movido desde Alquiler" still explains where its money came
-from) with `counterpartId` null. The deleted envelope's own history disappears with it. After the
+from) with `counterpartId` absent. The deleted envelope's own history disappears with it. After the
 delete, `EnvelopesService.remove` deletes the moves of the plan whose two ids are null (both envelopes
 gone), so no unreachable row stays; deleting the plan cascades through `plan_id`. Retention rather
 than cascade because deleting an envelope returns only its own money to Ready to Assign: the money it

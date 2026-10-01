@@ -865,7 +865,9 @@ paths:
         Subtracts the amount from the source's assignment of the month and adds it to the
         destination's, atomically and without creating a transaction. Ready to Assign, the other
         envelopes and the other months do not change. The amount cannot exceed the source's
-        Available in that month (`409`).
+        Available in that month (`409`). Each successful move is recorded, in the same atomic
+        operation, and listed in `moves` of the detail of both envelopes; a refused move records
+        nothing.
       parameters:
         - $ref: '#/components/parameters/PlanId'
       requestBody:
@@ -1020,7 +1022,7 @@ paths:
       tags: [Envelopes]
       operationId: getEnvelopeDetail
       summary: Get an envelope with the figures and the activity of a month
-      description: The envelope line of the month (figures, state, goal status), its carryover and the month's transactions that have a portion on the envelope, newest first by `createdAt` (ties by id), at most 100.
+      description: The envelope line of the month (figures, state, goal status), its carryover, the month's transactions that have a portion on the envelope (`activity`) and the month's moves of money between envelopes in which it took part (`moves`), each list newest first by `createdAt` (ties by id), at most 100.
       parameters:
         - $ref: '#/components/parameters/PlanId'
         - $ref: '#/components/parameters/EnvelopeId'
@@ -2638,7 +2640,7 @@ components:
     EnvelopeDetail:
       type: object
       description: One envelope with the figures and the activity of a month.
-      required: [month, line, carryoverMinor, activity, activityTotal]
+      required: [month, line, carryoverMinor, activity, activityTotal, moves, movesTotal]
       properties:
         month:
           $ref: '#/components/schemas/MonthKey'
@@ -2655,6 +2657,43 @@ components:
           type: integer
           minimum: 0
           description: Number of transactions of the month with a portion on the envelope.
+        moves:
+          type: array
+          description: Moves of money between envelopes made for the month in which the envelope was the source or the destination, newest first by `createdAt` (ties by id), at most 100. A client shows them with `activity`, merged by `createdAt`. They are history only and never count in `line.spentMinor`.
+          items:
+            $ref: '#/components/schemas/EnvelopeMove'
+        movesTotal:
+          type: integer
+          minimum: 0
+          description: Number of moves of the month in which the envelope was the source or the destination.
+    EnvelopeMove:
+      type: object
+      description: One recorded move of money between two envelopes, seen from the envelope of the detail.
+      required: [id, direction, counterpartName, amountMinor, month, createdAt]
+      properties:
+        id:
+          $ref: '#/components/schemas/Uuid'
+        direction:
+          type: string
+          enum: [in, out]
+          description: '`out` when the envelope was the source (money left it), `in` when it was the destination.'
+        counterpartId:
+          $ref: '#/components/schemas/Uuid'
+          description: The other envelope; absent when it was deleted afterwards.
+        counterpartName:
+          type: string
+          description: Name of the other envelope (the name it had when it was deleted, if it no longer exists).
+        amountMinor:
+          type: integer
+          minimum: 1
+          examples: [10000]
+        month:
+          $ref: '#/components/schemas/MonthKey'
+          description: The month the move was made for.
+        createdAt:
+          type: string
+          format: date-time
+          description: Registration instant of the move.
     MoveMoneyRequest:
       type: object
       required: [fromEnvelopeId, toEnvelopeId, amountMinor]
