@@ -242,11 +242,11 @@ no se agregarán archivos de test.
       exige rediseño.
 - [ ] **FR-28** — **Transferencia entre cuentas** como transacción sin sobre.
 - [ ] **FR-40** — **Moneda del plan**: al crear un plan se elige su moneda entre una lista
-      extensible (ARS "$", USD "US$", EUR "€"). La moneda es **inmutable** una vez creado el
+      extensible (ARS "$", USD "US$", EUR "€", BOB "Bs."). La moneda es **inmutable** una vez creado el
       plan, porque cambiarla exigiría convertir montos históricos. Todo monto del plan —
       tarjetas de saldo, sobres, cuentas, movimientos, filtros, reportes y la vista de unión a
       un plan — se muestra con el símbolo y el formato de esa moneda (locale es-AR: separador
-      de miles punto, decimales con coma; ARS sin decimales, USD/EUR con 2).
+      de miles punto, decimales con coma; ARS sin decimales, USD/EUR/BOB con 2).
 
 > FR-26, FR-27 y FR-40 no figuran en las directrices de la cátedra. Se implementan por
 > decisión del equipo.
@@ -337,7 +337,7 @@ endpoints con Swagger UI o Prism — en vez de con una suite de tests automatiza
 - **Moneda del plan y unidades menores.** Cada plan guarda su moneda (FR-40) al crearse; el
   backend almacena y opera todo monto de ese plan como entero en la unidad menor de **esa**
   moneda, nunca en una unidad mixta. Unidades menores por moneda soportada: ARS 0 (no se
-  modelan centavos; el peso es la unidad entera), USD 2 (centavos), EUR 2 (centavos). El
+  modelan centavos; el peso es la unidad entera), USD 2 (centavos), EUR 2 (centavos), BOB 2 (centavos). El
   formato usa siempre el locale es-AR (punto de miles, coma decimal). La conversión entre
   monedas queda fuera de alcance (FR-33).
 - **Fecha y hora**: se persisten como instante con zona (`timestamptz`) y se muestran en la
@@ -460,3 +460,4 @@ declarados tienen prioridad sobre cualquier requisito de presentación.
 | 1.8 | 2026-09-28 | Equipo | Persistencia pasa de Prisma a TypeORM (integración nativa con NestJS, entidades por feature). Reparto del equipo por feature full-stack (ver docs/ROADMAP.md y docs/COLABORACION.md). Sin archivos de test: verificación manual |
 | 2.0 | 2026-10-01 | Equipo | KR4 y KR5 llevan la nota ⁽²⁾: con la decisión de no tener archivos de test no se cumplen tal como están escritos, y se documenta qué los reemplaza (módulo puro del dominio, `npm run calc:kr1` con 28 comprobaciones, verificación manual por change). La alternativa de cálculo en el cliente deja de mencionar pruebas unitarias |
 | 1.9 | 2026-09-29 | Equipo | Se resuelve la gestión de estado en Flutter: `ChangeNotifier` + `ListenableBuilder`, sin Riverpod ni `provider` (ninguna de las dos personas usó Riverpod, condición de §9). Dependencias inyectadas por constructor desde una raíz de composición. Change `scaffold-frontend` (RRG-41) |
+| 2.1 | 2026-10-01 | Equipo | FR-40 suma el boliviano (BOB, símbolo "Bs.", 2 unidades menores) como cuarta moneda del plan; §9 lo agrega a las unidades menores por moneda soportada. Sin otros cambios de alcance (RRG-58) |

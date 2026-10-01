@@ -229,8 +229,8 @@ grandes en `display` Light.
 Cada plan tiene **una** moneda, elegida al crearlo (20 Nuevo plan) e **inmutable** después
 (FR-40). El formato usa siempre el locale es-AR (punto de miles, coma decimal) y la
 cantidad de decimales sigue la unidad menor de la moneda: ARS no muestra decimales
-(`$ 48.200`), USD y EUR muestran 2 (`US$ 1.250,50`, `€ 980,00`). Un monto negativo antepone
-el signo `−` al símbolo (`−US$ 12,50`), nunca lo pone después ni lo reemplaza por color solo.
+(`$ 48.200`), USD, EUR y BOB muestran 2 (`US$ 1.250,50`, `€ 980,00`, `Bs. 1.250,50`). Un monto negativo antepone
+el signo `−` al símbolo (`−US$ 12,50`, `−Bs. 12,50`), nunca lo pone después ni lo reemplaza por color solo.
 
 | Dónde aparece un monto | Formato |
 |---|---|
@@ -238,7 +238,7 @@ el signo `−` al símbolo (`−US$ 12,50`), nunca lo pone después ni lo reempl
 | Filas de sobre (`EnvelopeRow`: asignado, gastado y disponible) | Símbolo + monto en cada cifra; "disponible" negativo en rojo con `−`, nunca solo por color |
 | Filas de cuenta (`AccountRow`) | Símbolo + saldo derivado de la cuenta, en la moneda del plan |
 | Filas de movimiento (`TxRow`) | Símbolo + monto; los ingresos van en la cápsula lavanda, los gastos en texto simple |
-| `AmountCapsule` (teclado de monto) | El símbolo va en el badge circular izquierdo; los símbolos de más de un carácter (p. ej. "US$") usan una fuente más chica para entrar en el círculo de 48px |
+| `AmountCapsule` (teclado de monto) | El símbolo va en el badge circular izquierdo; los símbolos de más de un carácter (p. ej. "US$", "Bs.") usan una fuente más chica para entrar en el círculo de 48px |
 | Chips de monto rápido (`QuickAmounts`) | Solo el número, **sin símbolo** — ya aparece en la `AmountCapsule` que alimentan |
 | Etiquetas de `SaveBar` ("Asignar US$ 6.200", "Mover US$ 6.200") | Símbolo + monto dentro del texto del botón |
 | Cierre de mes (25) | Símbolo + monto en el chequeo de cuadre y en cada línea de arrastre o sobregiro |
@@ -246,7 +246,7 @@ el signo `−` al símbolo (`−US$ 12,50`), nunca lo pone después ni lo reempl
 | Reportes y gráficos (17) | Símbolo + monto en ejes, totales y tooltips |
 | Tarjetas de meta (`GoalCard`) | Símbolo + monto ahorrado y monto objetivo |
 | Filtros de la vista de plan (FR-21) | No muestran montos, solo el estado del sobre (Sobregirados, Falta) |
-| Lista de planes (`PlanRow`, 16) | No muestra montos; muestra el nombre de la moneda entre paréntesis con su símbolo, p. ej. "pesos ($)", "dólares (US$)" |
+| Lista de planes (`PlanRow`, 16) | No muestra montos; muestra el nombre de la moneda entre paréntesis con su símbolo, p. ej. "pesos ($)", "dólares (US$)", "bolivianos (Bs.)" |
 | Vista previa de unión a un plan (30 Unirse a un plan) | No muestra montos: el código de invitación no revela el estado financiero del plan |
 
 ---
@@ -471,15 +471,17 @@ F6a/F6b.
   Editar sobre. 32 Grupos lista los grupos con su cantidad de sobres, acciones de renombrar
   y borrar, un campo para crear uno nuevo y la nota "Al borrar un grupo, sus sobres pasan
   a…".
-- 20 Nuevo plan reemplaza el campo de texto de moneda por una tarjeta selectora de 3
-  opciones (Pesos $ · Dólares US$ · Euros €) con la elegida marcada en lavanda, y la nota
+- 20 Nuevo plan reemplaza el campo de texto de moneda por una tarjeta selectora de 4
+  opciones (Pesos $ · Dólares US$ · Euros € · Bolivianos Bs.) con la elegida marcada en lavanda, y la nota
   "No se puede cambiar después de crear el plan." (FR-40). 16 Planes y miembros muestra la
   moneda de cada plan junto a sus miembros, y agrega el plan "Viaje a Chile" (solo Sofía,
   dólares) como ejemplo de un plan en otra moneda. 33 Plan en dólares es la vista de Plan
   del mes de ese plan: el encabezado lleva una cápsula "US$" junto al nombre, la tarjeta
   "Listo para asignar" y los sobres usan `US$` con 2 decimales, y `AmountCapsule` expone el
   símbolo de la moneda del plan como una propiedad más de la instancia (ver §8), en vez de
-  tenerlo fijo en "$".
+  tenerlo fijo en "$". La cuarta opción (Bolivianos, RRG-58) repite la fila del selector del
+  render de 20, que sigue mostrando tres; un plan en bolivianos usa `Bs.` con 2 decimales en las
+  mismas tarjetas que 33.
 
 ### 9.3 Lote A de la auditoría de navegación (pantallas 34–38, 45)
 
