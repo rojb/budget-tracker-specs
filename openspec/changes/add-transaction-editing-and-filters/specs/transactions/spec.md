@@ -120,7 +120,7 @@ newest first, grouped by day ("Hoy · martes 29", "Ayer · lunes 28", then "Sáb
 subtitle "<envelope> · <time>" ("<N> sobres · <time>" for a split, "Listo para asignar · <time>" for
 an income without envelope), the account name under the amount, the amount with `−` for an expense
 and a lavender capsule with `+` for an income, and the icon of the envelope (a split icon for a
-split, an arrow for an income to Ready to Assign). Its header SHALL show, next to the title, a
+split, an income arrow for every income). Its header SHALL show, next to the title, a
 search `IconButton` that reveals a text field in place (collapsed again by an `x`) and filters the
 list by `q` as the user types, and a filters `IconButton` that opens screen 11, lavender while a
 filter is active. Each active filter SHALL show as a removable chip under the header (a date range
@@ -142,7 +142,7 @@ skeleton rows; on failure, a retry.
 
 #### Scenario: Income row
 - **WHEN** an income of 3.500 into Farmacia at 19:10 on Banco Nación was recorded
-- **THEN** its row shows "+$ 3.500" in a lavender capsule with "Banco Nación" under it
+- **THEN** its row shows the income arrow icon, "+$ 3.500" in a lavender capsule and "Banco Nación" under it
 
 #### Scenario: Empty plan
 - **WHEN** the plan has no transactions
