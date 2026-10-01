@@ -1148,15 +1148,68 @@ paths:
       operationId: listTransactions
       summary: List transactions (movements)
       description: |
-        Newest first by `occurredAt` (ties by creation instant); with `accountId`, only the
-        transactions recorded on that account. Transfers between accounts are not transactions and
-        are not listed here.
+        Newest first by `occurredAt` (ties by creation instant). Transactions that were deleted are
+        not listed. Every filter is optional and they combine with AND. Dates and times are local to
+        the plan's time zone. `summary` totals every matching transaction (not only the page) with
+        its whole amount. Transfers between accounts are not transactions and are not listed here.
       parameters:
         - $ref: '#/components/parameters/PlanId'
         - name: accountId
           in: query
+          description: Only the transactions recorded on this account.
           schema:
             $ref: '#/components/schemas/Uuid'
+        - name: payeeId
+          in: query
+          description: Only the transactions of this payee.
+          schema:
+            $ref: '#/components/schemas/Uuid'
+        - name: envelopeId
+          in: query
+          description: Only the transactions with at least one portion on this envelope.
+          schema:
+            $ref: '#/components/schemas/Uuid'
+        - name: direction
+          in: query
+          schema:
+            $ref: '#/components/schemas/TransactionDirection'
+        - name: from
+          in: query
+          description: First local date included (`YYYY-MM-DD`). Must not be after `to`.
+          schema:
+            type: string
+            format: date
+        - name: to
+          in: query
+          description: Last local date included (`YYYY-MM-DD`).
+          schema:
+            type: string
+            format: date
+        - name: timeFrom
+          in: query
+          description: |
+            Start of the local time-of-day range, inclusive to the minute (`HH:mm`), on any date. When
+            it is after `timeTo` the range crosses midnight.
+          schema:
+            type: string
+            pattern: '^([01]\d|2[0-3]):[0-5]\d$'
+            examples: ['18:00']
+        - name: timeTo
+          in: query
+          description: End of the local time-of-day range, inclusive to the minute (`HH:mm`).
+          schema:
+            type: string
+            pattern: '^([01]\d|2[0-3]):[0-5]\d$'
+            examples: ['23:59']
+        - name: q
+          in: query
+          description: |
+            Text search, without letter case, over the payee name, the description and the name of
+            the envelope of any portion.
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 60
         - $ref: '#/components/parameters/Page'
         - $ref: '#/components/parameters/PageSize'
       responses:
@@ -1214,6 +1267,104 @@ paths:
                 statusCode: 409
                 message: Account is archived
                 error: Conflict
+  /plans/{planId}/transactions/{transactionId}:
+    put:
+      tags: [Transactions]
+      operationId: updateTransaction
+      summary: Edit a transaction (owner or editor)
+      description: |
+        Replaces every editable field and the portions with the body, which has the same shape and
+        rules as recording one. Sending the previous state back undoes an edit exactly: `id` and
+        `createdAt` never change. The account is validated only when it differs from the current one
+        (`409` if archived) and so is `payeeId` (`404` if deleted). The response lists the months
+        whose figures were recalculated.
+      parameters:
+        - $ref: '#/components/parameters/PlanId'
+        - $ref: '#/components/parameters/TransactionId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTransactionRequest'
+      responses:
+        '200':
+          description: The edited transaction.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionChange'
+        '400':
+          $ref: '#/components/responses/ValidationFailed'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: The new account is archived.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                statusCode: 409
+                message: Account is archived
+                error: Conflict
+    delete:
+      tags: [Transactions]
+      operationId: deleteTransaction
+      summary: Delete a transaction logically (owner or editor)
+      description: |
+        The transaction stops counting everywhere (list, summary, balances, activity, payee counts)
+        but is kept, so `restoreTransaction` brings it back exactly. Deleting one that is already
+        deleted is `404`.
+      parameters:
+        - $ref: '#/components/parameters/PlanId'
+        - $ref: '#/components/parameters/TransactionId'
+      responses:
+        '200':
+          description: The transaction was deleted; the months whose figures were recalculated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AffectedMonths'
+        '400':
+          $ref: '#/components/responses/ValidationFailed'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /plans/{planId}/transactions/{transactionId}/restore:
+    post:
+      tags: [Transactions]
+      operationId: restoreTransaction
+      summary: Restore a deleted transaction (owner or editor)
+      description: |
+        Gives back the transaction with the same id, creation instant, amount, account, payee, date,
+        description and portions it had when it was deleted. Restoring one that is not deleted is
+        `404`.
+      parameters:
+        - $ref: '#/components/parameters/PlanId'
+        - $ref: '#/components/parameters/TransactionId'
+      responses:
+        '200':
+          description: The restored transaction.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionChange'
+        '400':
+          $ref: '#/components/responses/ValidationFailed'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
   /health:
     get:
       tags: [Health]
@@ -1242,6 +1393,12 @@ components:
         $ref: '#/components/schemas/Uuid'
     TransferId:
       name: transferId
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/Uuid'
+    TransactionId:
+      name: transactionId
       in: path
       required: true
       schema:
@@ -2078,16 +2235,53 @@ components:
             $ref: '#/components/schemas/TransactionSplit'
         createdAt:
           $ref: '#/components/schemas/Timestamp'
+    TransactionSummary:
+      type: object
+      description: |
+        Totals of every transaction the filters select, not only of the returned page: the money
+        that left (expenses) and the money that came in (incomes), each transaction with its whole
+        amount.
+      required: [outflowMinor, inflowMinor]
+      properties:
+        outflowMinor:
+          type: integer
+          minimum: 0
+        inflowMinor:
+          type: integer
+          minimum: 0
     TransactionPage:
       allOf:
         - $ref: '#/components/schemas/PageMeta'
         - type: object
-          required: [items]
+          required: [items, summary]
           properties:
             items:
               type: array
               items:
                 $ref: '#/components/schemas/Transaction'
+            summary:
+              $ref: '#/components/schemas/TransactionSummary'
+    AffectedMonths:
+      type: object
+      description: |
+        Months whose derived figures were recalculated by the change, ascending, in the plan's time
+        zone: from the earliest month the transaction touched (before or after the change) to the
+        later of the current month and the latest month it touched.
+      required: [affectedMonths]
+      properties:
+        affectedMonths:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/MonthKey'
+    TransactionChange:
+      allOf:
+        - $ref: '#/components/schemas/AffectedMonths'
+        - type: object
+          required: [transaction]
+          properties:
+            transaction:
+              $ref: '#/components/schemas/Transaction'
     CreateTransactionSplit:
       type: object
       required: [envelopeId, amountMinor]
