@@ -81,8 +81,8 @@ test en ning煤n repo (`odd/tasks/team-coordination-setup.md`; ver la nota 鈦铰光
   Prism o requests contra la API real, incluidos los errores) y de sus pantallas contra los
   renders.
 
-Es verificaci贸n reproducible pero no automatizada en CI: si la c谩tedra exige formalmente KR4 o
-KR5, la decisi贸n de no tener tests tiene que revisarse.
+Es una decisi贸n fija del equipo: la verificaci贸n es reproducible pero no automatizada en CI, y
+no se agregar谩n archivos de test.
 
 ### Anti-Goals
 
