@@ -9,8 +9,10 @@ monthly assignments — on every query, without persisting any aggregate.
 
 ### Requirement: Derived values are never persisted
 The engine SHALL compute `Assigned`, `Spent`, `Carryover`, `Available` and `ReadyToAssign` from
-the stored facts (account opening balances, transactions, transaction splits and assignments) each
-time they are requested. None of these derived values SHALL be stored in the database.
+the stored facts (account opening balances, transactions that have not been deleted, transaction
+splits and assignments) each time they are requested. None of these derived values SHALL be stored
+in the database, and a transaction that was deleted logically SHALL NOT be a fact of the
+calculation until it is restored.
 
 #### Scenario: Editing a past fact
 - **WHEN** a transaction dated in a month that is already over is edited or deleted
@@ -19,6 +21,10 @@ time they are requested. None of these derived values SHALL be stored in the dat
 #### Scenario: Schema holds only facts
 - **WHEN** the database schema introduced by this change is inspected
 - **THEN** it contains budget months and assignments only, with no column for Available, Carryover or Ready to Assign
+
+#### Scenario: Deleted and restored fact
+- **WHEN** a transaction is deleted and later restored
+- **THEN** the calculations made while it was deleted equal those of a plan that never had it, and the ones made after the restoration equal those from before the deletion
 
 ### Requirement: Monthly assignment facts
 An assignment SHALL be the amount of money, in minor units, given to one envelope in one budget
