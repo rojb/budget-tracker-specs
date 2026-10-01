@@ -63,8 +63,26 @@ movimiento del pasado.
 | KR1 — Escenarios de revisión del docente que pasan (asignación futura; saldado del mes anterior cuadrando; edición y borrado con recálculo) | 0 / 3 | 3 / 3 | Entrega | Equipo |
 | KR2 — Campos obligatorios por transacción implementados (fecha+hora, descripción, monto, beneficiario, sobre, dirección) | 0 / 6 | 6 / 6 | Entrega | Equipo |
 | KR3 — Interacciones para registrar un gasto desde la apertura de la app | n/a | ≤ 5 toques | Entrega | Equipo |
-| KR4 — Cobertura de tests unitarios del dominio de presupuesto en el backend | 0 % | ≥ 80 % de líneas | Entrega | Equipo |
-| KR5 — Invariante del plan verificado tras operaciones de alta, edición y borrado | 0 casos | ≥ 12 casos de prueba, todos en verde | Entrega | Equipo |
+| KR4 — Cobertura de tests unitarios del dominio de presupuesto en el backend ⁽²⁾ | 0 % | ≥ 80 % de líneas | Entrega | Equipo |
+| KR5 — Invariante del plan verificado tras operaciones de alta, edición y borrado ⁽²⁾ | 0 casos | ≥ 12 casos de prueba, todos en verde | Entrega | Equipo |
+
+⁽²⁾ **KR4 y KR5 no se cumplen tal como están escritos.** El equipo decidió no tener archivos de
+test en ningún repo (`odd/tasks/team-coordination-setup.md`; ver la nota ⁽¹⁾ de §7 y
+`docs/ROADMAP.md`, "Ambigüedades del PRD", punto 5), así que no hay cobertura de líneas medida
+(KR4) ni una suite de casos que corra en CI (KR5). En su lugar:
+
+- El dominio de presupuesto vive en un único módulo puro del backend (`CalculationService`, sin
+  acceso a la base), lo que permite verificarlo directamente con datos fijos.
+- `npm run calc:kr1` (`src/scripts/kr1-scenarios.ts`) reproduce sobre el dataset canónico los 3
+  escenarios de KR1, el invariante de FR-11 tras editar y borrar movimientos pasados, la
+  atribución de mes por zona horaria y el umbral de rendimiento: 28 comprobaciones con valor
+  esperado y calculado, todas correctas.
+- Cada change registra en su `tasks.md` la verificación manual de sus endpoints (Swagger UI,
+  Prism o requests contra la API real, incluidos los errores) y de sus pantallas contra los
+  renders.
+
+Es verificación reproducible pero no automatizada en CI: si la cátedra exige formalmente KR4 o
+KR5, la decisión de no tener tests tiene que revisarse.
 
 ### Anti-Goals
 
@@ -420,7 +438,7 @@ declarados tienen prioridad sobre cualquier requisito de presentación.
 
 | Opción | Pros | Cons | Por qué se rechazó |
 |--------|------|------|--------------------|
-| Cálculo del presupuesto en el cliente, servidor como almacén de hechos | Menor latencia; funcionaría sin conexión | Duplica el algoritmo si más adelante se agrega otro cliente; la lógica evaluable queda en la capa más difícil de testear | Se priorizó una única implementación del dominio, en el backend, con pruebas unitarias directas |
+| Cálculo del presupuesto en el cliente, servidor como almacén de hechos | Menor latencia; funcionaría sin conexión | Duplica el algoritmo si más adelante se agrega otro cliente; la lógica evaluable queda en la capa más difícil de testear | Se priorizó una única implementación del dominio, en el backend, como módulo puro verificable directamente (`npm run calc:kr1`) |
 | Arquitectura offline-first con sincronización diferida | Funciona sin conexión, mejor producto real | Introduce convergencia y resolución de conflictos sobre un invariante monetario; es el riesgo más alto del proyecto y no se evalúa | Excluido: coste desproporcionado frente a su valor en la evaluación |
 | Persistir `Available` y `ReadyToAssign` como columnas | Lecturas más rápidas | Cada edición de una transacción pasada obliga a invalidar agregados de todos los meses posteriores; es la fuente natural de descuadres | Rechazado: FR-13 exige recálculo confiable, y no hay agregado que se desactualice si no existe |
 | Modelar planes privados y planes compartidos como entidades distintas | Modelo privado más simple al inicio | Duplica reglas de autorización y de acceso; migrar de privado a compartido exigiría rediseño | Rechazado: un `Plan` con `members: 1..N` cubre ambos casos con un solo modelo |
@@ -440,4 +458,5 @@ declarados tienen prioridad sobre cualquier requisito de presentación.
 | 1.6 | 2026-09-28 | Equipo | Se agrega FR-41 (Foto de meta, Should Have): subir, cambiar o quitar una foto por meta desde la galería, la cámara o un set sugerido, almacenada por el backend con límite de tamaño y formato y redimensionada server-side; sin foto la tarjeta usa un color. §9 documenta el almacenamiento de imágenes (disco local u object storage, sin CDN). El diseño agrega la pantalla 50 (Foto de la meta) y separa el toast «Recalculado» de 12 en su propio estado posterior al guardado (pantalla 49) |
 | 1.7 | 2026-09-28 | Equipo | FR-03 aclara que las cuentas archivadas se listan aparte y pueden restaurarse. El diseño cierra tres brechas encontradas por el usuario: la lista de cuentas archivadas (pantalla 51, con Restaurar), el selector de grupo como hoja con radio al crear o editar un sobre (pantalla 52, sin buscador porque solo hay 4 grupos) y el estado de monto propio de "Asignar dinero" con la calculadora visible (pantalla 53). También corrige la etiqueta "Súper" a "Supermercado" en 03, por la convención de nombres |
 | 1.8 | 2026-09-28 | Equipo | Persistencia pasa de Prisma a TypeORM (integración nativa con NestJS, entidades por feature). Reparto del equipo por feature full-stack (ver docs/ROADMAP.md y docs/COLABORACION.md). Sin archivos de test: verificación manual |
+| 2.0 | 2026-10-01 | Equipo | KR4 y KR5 llevan la nota ⁽²⁾: con la decisión de no tener archivos de test no se cumplen tal como están escritos, y se documenta qué los reemplaza (módulo puro del dominio, `npm run calc:kr1` con 28 comprobaciones, verificación manual por change). La alternativa de cálculo en el cliente deja de mencionar pruebas unitarias |
 | 1.9 | 2026-09-29 | Equipo | Se resuelve la gestión de estado en Flutter: `ChangeNotifier` + `ListenableBuilder`, sin Riverpod ni `provider` (ninguna de las dos personas usó Riverpod, condición de §9). Dependencias inyectadas por constructor desde una raíz de composición. Change `scaffold-frontend` (RRG-41) |
