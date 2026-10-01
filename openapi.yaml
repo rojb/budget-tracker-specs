@@ -45,6 +45,8 @@ tags:
     description: Invitation codes, joining a plan and managing its members (FR-27).
   - name: Months
     description: Monthly assignment, the aggregated month view and the month close (FR-09, FR-10, FR-11, FR-12, FR-15, FR-16).
+  - name: Reports
+    description: Spending by envelope, income against expenses and net worth over a range of months (FR-26).
 paths:
   /auth/register:
     post:
@@ -1743,6 +1745,82 @@ paths:
           $ref: '#/components/responses/NotFound'
         '409':
           $ref: '#/components/responses/MonthNotEnded'
+  /plans/{planId}/reports/spending:
+    get:
+      tags: [Reports]
+      operationId: getSpendingReport
+      summary: Spending by envelope per month
+      description: |
+        For each month of the range, the money spent from each envelope (expense portions minus
+        income sent to it, in the plan's time zone), envelopes with spending above zero only,
+        largest first, and the month total.
+      parameters:
+        - $ref: '#/components/parameters/PlanId'
+        - $ref: '#/components/parameters/ReportFrom'
+        - $ref: '#/components/parameters/ReportTo'
+      responses:
+        '200':
+          description: One entry per month of the range, oldest first.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpendingReport'
+        '400':
+          $ref: '#/components/responses/ValidationFailed'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /plans/{planId}/reports/income-expense:
+    get:
+      tags: [Reports]
+      operationId: getIncomeExpenseReport
+      summary: Income and expenses per month
+      description: |
+        For each month of the range, the sum of the income and of the expense transactions of the
+        plan. Transfers between accounts count as neither.
+      parameters:
+        - $ref: '#/components/parameters/PlanId'
+        - $ref: '#/components/parameters/ReportFrom'
+        - $ref: '#/components/parameters/ReportTo'
+      responses:
+        '200':
+          description: One entry per month of the range, oldest first.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IncomeExpenseReport'
+        '400':
+          $ref: '#/components/responses/ValidationFailed'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /plans/{planId}/reports/net-worth:
+    get:
+      tags: [Reports]
+      operationId: getNetWorthReport
+      summary: Net worth at the end of each month
+      description: |
+        For each month of the range, the sum of the balances of the active accounts at the end of
+        the month.
+      parameters:
+        - $ref: '#/components/parameters/PlanId'
+        - $ref: '#/components/parameters/ReportFrom'
+        - $ref: '#/components/parameters/ReportTo'
+      responses:
+        '200':
+          description: One entry per month of the range, oldest first.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NetWorthReport'
+        '400':
+          $ref: '#/components/responses/ValidationFailed'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
   /health:
     get:
       tags: [Health]
@@ -1833,6 +1911,18 @@ components:
       in: path
       required: true
       description: Budget month as YYYY-MM.
+      schema:
+        $ref: '#/components/schemas/MonthKey'
+    ReportFrom:
+      name: from
+      in: query
+      description: First month of the range; five months before `to` when absent. At most 24 months.
+      schema:
+        $ref: '#/components/schemas/MonthKey'
+    ReportTo:
+      name: to
+      in: query
+      description: Last month of the range; the current month in the plan's time zone when absent.
       schema:
         $ref: '#/components/schemas/MonthKey'
     AccountId:
@@ -2703,6 +2793,88 @@ components:
         confirmed:
           type: boolean
           description: True once an owner or editor confirmed the close.
+    EnvelopeSpending:
+      type: object
+      required: [envelopeId, name, icon, amountMinor]
+      properties:
+        envelopeId:
+          $ref: '#/components/schemas/Uuid'
+        name:
+          type: string
+        icon:
+          $ref: '#/components/schemas/EnvelopeIcon'
+        amountMinor:
+          type: integer
+          minimum: 1
+    SpendingMonth:
+      type: object
+      required: [month, totalMinor, envelopes]
+      properties:
+        month:
+          $ref: '#/components/schemas/MonthKey'
+        totalMinor:
+          $ref: '#/components/schemas/MoneyMinor'
+          description: Σ of the envelopes' spending in the month.
+        envelopes:
+          type: array
+          description: Envelopes with spending above zero, largest first.
+          items:
+            $ref: '#/components/schemas/EnvelopeSpending'
+    SpendingReport:
+      type: object
+      required: [from, to, months]
+      properties:
+        from:
+          $ref: '#/components/schemas/MonthKey'
+        to:
+          $ref: '#/components/schemas/MonthKey'
+        months:
+          type: array
+          items:
+            $ref: '#/components/schemas/SpendingMonth'
+    IncomeExpenseMonth:
+      type: object
+      required: [month, incomeMinor, expenseMinor]
+      properties:
+        month:
+          $ref: '#/components/schemas/MonthKey'
+        incomeMinor:
+          $ref: '#/components/schemas/MoneyMinor'
+        expenseMinor:
+          $ref: '#/components/schemas/MoneyMinor'
+    IncomeExpenseReport:
+      type: object
+      required: [from, to, months]
+      properties:
+        from:
+          $ref: '#/components/schemas/MonthKey'
+        to:
+          $ref: '#/components/schemas/MonthKey'
+        months:
+          type: array
+          items:
+            $ref: '#/components/schemas/IncomeExpenseMonth'
+    NetWorthMonth:
+      type: object
+      required: [month, balanceMinor]
+      properties:
+        month:
+          $ref: '#/components/schemas/MonthKey'
+        balanceMinor:
+          $ref: '#/components/schemas/MoneyMinor'
+          description: Σ balances of the active accounts at the end of the month.
+    NetWorthReport:
+      type: object
+      required: [from, to, months]
+      properties:
+        from:
+          $ref: '#/components/schemas/MonthKey'
+        to:
+          $ref: '#/components/schemas/MonthKey'
+        months:
+          type: array
+          items:
+            $ref: '#/components/schemas/NetWorthMonth'
     PhotoSuggestionId:
       type: string
       enum: [vacaciones, auto, emergencia, mudanza]
