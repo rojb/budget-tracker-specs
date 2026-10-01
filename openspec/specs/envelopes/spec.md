@@ -248,7 +248,9 @@ the viewed month (the current one when the tab opens): the `layers` button (→ 
 place), the month switch, the `JoinedCard` with "Listo para asignar" and the number of "Sobres
 activos", and, for each group in order, a group header (name, "<amount> disponible" subtotal and a
 "+" that opens 31 with that group preselected) followed by its envelopes as `EnvelopeRow`s;
-envelopes without a group SHALL follow under "Sin grupo". An envelope row shows the icon, the name,
+envelopes without a group SHALL follow under "Sin grupo". After the last group, a row with
+"Nuevo grupo" and "Editar grupos" SHALL open 32, so groups can be created and managed without
+leaving the Plan tab; it is hidden while a search or a status filter narrows the list. An envelope row shows the icon, the name,
 "<spent> de <assigned>" and the available amount with its state taken from the API's `state`:
 Funded ("Disponible", or "Cubierto" with full stripes when it has a goal), Underfunded ("Falta
 <missing>" with partial stripes), Overspent (red, "Sobregirado") or Empty (nothing assigned, no
@@ -279,6 +281,10 @@ status filter chips, the change of month and the future month view are defined b
 #### Scenario: Ungrouped envelopes
 - **WHEN** a group is deleted and its envelopes lose their group
 - **THEN** 02 lists them at the end under "Sin grupo"
+
+#### Scenario: Manage groups from the plan
+- **WHEN** the user scrolls to the end of 02 and taps "Nuevo grupo" or "Editar grupos"
+- **THEN** screen 32 Grupos opens
 
 ### Requirement: New envelope screen
 Screen 31 Nuevo sobre SHALL open from the "+" of a group in 02, from "Crear sobre vacío" in 06 or from
