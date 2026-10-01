@@ -157,8 +157,11 @@ cycle). `activityTotal` is the list's `total`.
    amount is `400`.
 2. The month's figures are calculated once; if `amountMinor` is greater than the source's Available
    (including carryover) the call is `409` with the message "The source envelope has less available
-   than the amount". The check uses the facts at that instant; a concurrent expense can still race
-   it, which at worst leaves the source overspent, a state the app already represents.
+   than the amount". The check and the change run inside an in-process per-plan queue (the app is a single
+   process; a database lock held across the check would starve the connection pool under load), so two
+   concurrent moves cannot both spend the same available money (20 concurrent moves of 5.000 over a
+   60.000 source: exactly 12 succeed). An expense recorded at the same instant is not queued with the
+   moves and can still leave the source overspent, a state the app already represents.
 3. One new method of `AssignmentsService`, `shiftAssignments(planId, month, deltas)`, applies
    `-amount` and `+amount` in one database transaction with `INSERT ... ON CONFLICT DO UPDATE SET
    amount_minor = assignments.amount_minor + EXCLUDED.amount_minor`, so there is no read-modify-write
