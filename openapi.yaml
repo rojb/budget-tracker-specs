@@ -9,7 +9,7 @@ info:
     Conventions (capability `api-conventions`):
     - JSON property names are camelCase.
     - Money is an integer in the minor units of the plan's currency, in fields named
-      `<thing>Minor`. The currency (ARS, USD or EUR, immutable per plan) is a property of the plan
+      `<thing>Minor`. The currency (ARS, USD, EUR or BOB, immutable per plan) is a property of the plan
       and is never repeated per amount. Formatting is the client's job; the API never returns
       formatted money strings. Responses that must not reveal financial state omit amounts.
     - Identifiers are UUID v4 strings; instants are ISO-8601 date-times with offset; budget months
@@ -3206,14 +3206,15 @@ components:
     CurrencyCode:
       type: string
       description: Currency of a plan. Chosen at plan creation and immutable afterwards (FR-40).
-      enum: [ARS, USD, EUR]
+      enum: [ARS, USD, EUR, BOB]
     Currency:
       type: object
       description: |
-        Currency of a plan, one of exactly three options.
+        Currency of a plan, one of exactly four options.
         ARS: symbol `$`, name `pesos`, 0 minor units.
         USD: symbol `US$`, name `dólares`, 2 minor units.
         EUR: symbol `€`, name `euros`, 2 minor units.
+        BOB: symbol `Bs.`, name `bolivianos`, 2 minor units.
         Clients format amounts (es-AR: `.` thousands, `,` decimal, `−` before the symbol for
         negatives); the API never returns pre-formatted money strings.
       required: [code, symbol, name, minorUnits]
@@ -3222,11 +3223,11 @@ components:
           $ref: '#/components/schemas/CurrencyCode'
         symbol:
           type: string
-          enum: ['$', 'US$', '€']
+          enum: ['$', 'US$', '€', 'Bs.']
         name:
           type: string
           description: Spanish display name shown next to the symbol, e.g. "pesos ($)".
-          enum: [pesos, dólares, euros]
+          enum: [pesos, dólares, euros, bolivianos]
         minorUnits:
           type: integer
           description: Decimal digits of the minor unit.
@@ -3240,7 +3241,7 @@ components:
       type: integer
       description: |
         Integer amount in the minor units of the owning plan's currency, as defined by that
-        currency's `minorUnits` (ARS amounts are whole pesos; USD and EUR are cents). Never a
+        currency's `minorUnits` (ARS amounts are whole pesos; USD, EUR and BOB are cents). Never a
         float. Use in fields named `<thing>Minor`.
       examples: [1250]
     PageMeta:
