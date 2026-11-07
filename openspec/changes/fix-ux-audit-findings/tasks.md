@@ -8,38 +8,38 @@ story and is flagged for review by the other developer after merge (docs/COLABOR
 
 ## 1. [specs]
 
-- [ ] 1.1 Add the `ChipRow` line (horizontal scroller of chips with trailing padding and an edge
+- [x] 1.1 Add the `ChipRow` line (horizontal scroller of chips with trailing padding and an edge
   fade, used by 02/04) to the component inventory of PRD-ux-spec.md §8, so the new `UiChipRow` of task
   2.2 is in the inventory the screens draw from. Forecast 3 lines. Verify the row is in §8 and
-  `openspec validate fix-ux-audit-findings --strict` passes.
+  `openspec validate fix-ux-audit-findings --strict` passes. (specs d3f2812; row `ChipRow` added to the §8 inventory table; `openspec validate fix-ux-audit-findings --strict` valid)
 
 ## 2. [front]
 
 ### Shared components (`packages/ui`, review by the other developer)
 
-- [ ] 2.1 `UiSaveBar`: wrap in `Align(center)` so it has one position everywhere, add
+- [x] 2.1 `UiSaveBar`: wrap in `Align(center)` so it has one position everywhere, add
   `leadingSemanticLabel` (default "Calculadora") and a 48 dp hit area for the leading button, and
   update its Widgetbook use cases (default, disabled, split label). Forecast 65 lines. Verify
   `flutter analyze` in `packages/ui` and `widgetbook/`; in Widgetbook the bar is centered at the same
   width in a full-width `Column` and in a `ListView`, next to `design/screens/07`, `20`, `24`, `31`;
-  the swipe, tap and disabled behaviors are unchanged; flagged for post-merge review.
-- [ ] 2.2 New `UiChipRow` (horizontal scroller, 20 dp trailing padding, right-edge fade while more
+  the swipe, tap and disabled behaviors are unchanged; flagged for post-merge review. (front efa14e0; `flutter analyze` clean in `packages/ui`, `widgetbook/` and the app; `UiSaveBar` wraps in `Align(center)` (max width 340 kept) and `leadingSemanticLabel` (default "Calculadora") is added; the leading circle is already 68 dp so the 48 dp hit area needed no extra code; Widgetbook use cases: default, disabled, split label (07, "Dividir pago") and placement in a `Column` and a `ListView`; swipe, tap and disabled code paths untouched; side by side with `design/screens/07, 20, 24, 31` NOT run in this slice (visual device and Widgetbook comparison happen in the later slices); flagged for post-merge review)
+- [x] 2.2 New `UiChipRow` (horizontal scroller, 20 dp trailing padding, right-edge fade while more
   chips are out of view), exported from `ui.dart`, with its Widgetbook use cases (fits, overflows),
   
   Forecast 85 lines. Verify `flutter analyze` in `packages/ui` and `widgetbook/`; the Widgetbook case
   with five chips on a 393 dp frame shows the fade and the last chip fully visible at the end of the
-  scroll, next to `design/screens/02-plan-del-mes.png`; flagged for post-merge review.
-- [ ] 2.3 `UiGoalCard`: glass panel alpha from 90 to about 150 and the subtitle with the text shadow;
+  scroll, next to `design/screens/02-plan-del-mes.png`; flagged for post-merge review. (front 25efcc9; `flutter analyze` clean in `packages/ui`, `widgetbook/` and the app; `UiChipRow` (trailing padding 20, right-edge fade while more chips are out of view) exported from `ui.dart`, with use cases `fits` and `overflows (02/04)` (five chips on 393 dp); the visual check of the fade and last chip against `design/screens/02-plan-del-mes.png` NOT run in this slice; flagged for post-merge review)
+- [x] 2.3 `UiGoalCard`: glass panel alpha from 90 to about 150 and the subtitle with the text shadow;
   `UiTxRow`: new `titleMaxLines` (default 2). Update both Widgetbook stories (a bright photo case and
   a one-line-title case). Forecast 50 lines. Verify `flutter analyze` in `packages/ui` and
   `widgetbook/`; the goal card story with a bright photo and the long name "Viaje a Bariloche con la
   familia" is readable next to `design/screens/01-inicio.png`, and the existing `TxRow` stories are
-  pixel-equal to before; flagged for post-merge review.
-- [ ] 2.4 `UiBarChart`: `UiBarChartEntry.hasData` (default true) draws a 2 dp baseline tick for a
+  pixel-equal to before; flagged for post-merge review. (front 8e00ae0; `flutter analyze` clean in `packages/ui`, `widgetbook/` and the app; glass panel alpha 90 to 150 and the subtitle with the photo text shadow; `UiTxRow.titleMaxLines` (default 2, so existing rows are unchanged by construction); stories added: GoalCard bright photo with "Viaje a Bariloche con la familia" (a near-white in-memory image, the repo has no photo assets) and TxRow one-line title; side by side with `design/screens/01-inicio.png` NOT run in this slice; flagged for post-merge review)
+- [x] 2.4 `UiBarChart`: `UiBarChartEntry.hasData` (default true) draws a 2 dp baseline tick for a
   month without data and the value goes into the semantic label; Widgetbook use case with four empty
   months. Forecast 75 lines. Verify `flutter analyze` in `packages/ui` and `widgetbook/`; the story
   next to `design/screens/17-reportes.png` shows ticks for empty months and the highlighted bar with
-  its value; flagged for post-merge review.
+  its value; flagged for post-merge review. (front 7afc101; `flutter analyze` clean in `packages/ui`, `widgetbook/` and the app; `UiBarChartEntry.hasData` (default true) draws a 2 dp baseline tick, the caller's `semanticLabel` carries the value; Widgetbook use case with four empty months; side by side with `design/screens/17-reportes.png` NOT run in this slice; flagged for post-merge review)
 
 ### Daily-loop flows (screens)
 
