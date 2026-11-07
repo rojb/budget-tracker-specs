@@ -165,7 +165,12 @@ setting is changed).
   `envelopeMoveRow` passes `titleMaxLines: 1`.
 - V-07: see D5.
 - V-08: `FadedScroll` wraps the `ListView` of 01, 02, 10, 13 and 17; bottom padding of the lists is
-  raised to 32 dp so the last row clears the fade.
+  raised to 32 dp so the last row clears the fade. `FadedScroll` is a `Stack` with an
+  `IgnorePointer` gradient of a fixed 28 dp, from transparent to the page background (`bg`), over
+  the bottom edge. It is not a `ShaderMask`: masking a whole list draws it into an offscreen layer
+  and, measured on the device, raised the frame time of 10 from 16.8 ms to 33 ms and of 02 from
+  33 ms to 50 ms. The overlay leaves the list alone, so scrolling, pull to refresh and taps work
+  under it, and the 32 dp padding keeps the last row clear of the 28 dp fade.
 - V-12: `UiBarChartEntry` gains `hasData` (default true); `ReportsController` marks months with no
   movement. A no-data entry draws a 2 dp tick on the baseline.
 
