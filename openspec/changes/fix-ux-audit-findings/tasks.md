@@ -43,25 +43,25 @@ story and is flagged for review by the other developer after merge (docs/COLABOR
 
 ### Daily-loop flows (screens)
 
-- [ ] 2.5 Adopt the `SaveBar` placement: 31 and 23 get `SafeArea > Column > [Expanded(ListView), bar]`
+- [x] 2.5 Adopt the `SaveBar` placement: 31 and 23 get `SafeArea > Column > [Expanded(ListView), bar]`
   with a 16 dp bottom padding (as `new_plan_page.dart`), and the `Center`/padding wrappers around the
   bar in 07, 20 and 24 are removed. Forecast 90 lines. Verify `flutter analyze` in the app; on the
   device 31 opened from "+ Nueva meta" shows the Foto row, "Fecha límite" and the whole `SaveBar`
   above the gesture bar, next to `design/screens/31-nuevo-sobre.png`; 07, 20, 24 and 23 show the bar at
   the same width and position; the other bar screens (03, 08, 09, 12, 28, 29, 41, 42, 53) still look
-  right.
-- [ ] 2.6 31 (F-03, V-10): "Fecha límite" reads "Obligatoria" while empty, the preselected amount
+  right. (front 4fa0d46; `flutter analyze` clean in the app; 31 and 23 are now `SafeArea > Column > [Expanded(ListView), Padding(20,8,20,16) > UiSaveBar]`; the `Center` around the bar in 07 is removed; 20 already used that Padding pattern and 24 had no wrapper around the bar, so neither needed a change; the other bar screens were not touched; device and side-by-side checks NOT run in this slice (no adb: the phone may be in use) and PENDING for the one pass after slice D; the verify items on the device are left open, not observed (pending: 31 from "+ Nueva meta" shows Foto, Fecha límite and the whole bar; 07, 20, 24, 23 same width and position; 03, 08, 09, 12, 28, 29, 41, 42, 53 unchanged))
+- [x] 2.6 31 (F-03, V-10): "Fecha límite" reads "Obligatoria" while empty, the preselected amount
   is drawn muted until the user picks or keys one (`amountTouched` in the form state), and the date
   error stays "Elegí una fecha límite.". Forecast 50 lines. Verify `flutter analyze` in the app; on the
   device "+ Nueva meta" shows the muted 50.000 and the required date, saving without a date shows the
-  error and creates nothing, a date and a quick amount create the goal.
-- [ ] 2.7 07/09 (F-06, F-08): reserved message slot above the `SaveBar`, and `leadingSemanticLabel`
+  error and creates nothing, a date and a quick amount create the goal. (front cf91b02; `flutter analyze` clean in the app; `GoalDraft.amountTouched` (false for a new goal's preselected amount, true after a pick or key and for a saved goal), the capsule at 50% opacity and no quick chip selected while untouched, "Fecha límite" reads "Obligatoria" while empty, the date error text is unchanged; device and side-by-side checks NOT run in this slice (no adb: the phone may be in use) and PENDING for the one pass after slice D; the verify items on the device are left open, not observed (pending: muted 50.000 and required date on the device, save without a date shows the error and creates nothing, date plus a quick amount creates the goal))
+- [x] 2.7 07/09 (F-06, F-08): reserved message slot above the `SaveBar`, and `leadingSemanticLabel`
   "Dividir pago" in Gasto and "Calculadora" in Ingreso. The income keypad behavior is unchanged.
   Forecast 45 lines. Verify `flutter analyze` in the app; on the device saving with amount 0 shows
   "Ingresá un monto mayor a cero." and the bar does not move (compare two screenshots), TalkBack or
   the semantics tree reads "Dividir pago" in Gasto, and 09 still opens with the cards and no keypad,
-  next to `design/screens/07-nuevo-movimiento.png` and `09-registrar-ingreso.png`.
-- [ ] 2.8 07 (F-04): `TransactionsController.lastExpenseEnvelopeOf(payeeId)` (lists 5 transactions
+  next to `design/screens/07-nuevo-movimiento.png` and `09-registrar-ingreso.png`. (front 381a687; `flutter analyze` clean in the app; the error of 07/09 sits in an always-present slot (min 24 dp) above the `SaveBar`, and the bar gets `leadingSemanticLabel` "Dividir pago" in Gasto and "Calculadora" in Ingreso; the income keypad logic is untouched (08 `split_page.dart` still uses the default label, outside this task); device and side-by-side checks NOT run in this slice (no adb: the phone may be in use) and PENDING for the one pass after slice D; the verify items on the device are left open, not observed (pending: two screenshots with amount 0 showing the bar does not move, semantics tree, 09 opens with cards and no keypad))
+- [x] 2.8 07 (F-04): `TransactionsController.lastExpenseEnvelopeOf(payeeId)` (lists 5 transactions
   of the payee through the existing endpoint and returns the envelope of the first single-portion
   expense on an envelope that exists), `TransactionDraft.suggestEnvelope`, and the call after the
   payee picker closes when the payee has no usable suggestion and the envelope was not chosen by hand.
@@ -69,7 +69,7 @@ story and is flagged for review by the other developer after merge (docs/COLABOR
   payee whose latest expense was on Supermercado prefills Sobre, a payee with a suggested envelope
   keeps its own, a payee whose latest expense was split stays "Elegir", an envelope chosen by hand
   survives a new payee pick, and a payee created by typing its name leaves "Elegir"; count the taps
-  from "+" to saved (target 5).
+  from "+" to saved (target 5). (front 67a9217; `flutter analyze` clean in the app, `packages/ui` and `widgetbook/`; `TransactionsController.lastExpenseEnvelopeOf` lists 5 transactions of the payee and returns the envelope of the first single-portion expense on an existing envelope (split expenses and incomes are skipped, as design D1 says; a payee whose newest expense was split but has an older single-portion one is therefore prefilled from the older one, while task text says it stays "Elegir" - decision for the coordinator), `TransactionDraft.suggestEnvelope` does not set `envelopeByHand`, the call runs only when the picked payee has an id, no usable suggestion and the envelope was not chosen by hand, and a late answer is dropped if the payee changed; device and side-by-side checks NOT run in this slice (no adb: the phone may be in use) and PENDING for the one pass after slice D; the verify items on the device are left open, not observed (pending: the five payee cases and the tap count, target 5))
 - [ ] 2.9 Data freshness (F-05): `RefreshIndicator` on `HomePage` (envelopes, accounts, movements),
   and `AppShell` as a `StatefulWidget` with a `WidgetsBindingObserver` that reloads the same three
   controllers on resume after 60 s or more away. Forecast 95 lines. Verify `flutter analyze` in the
