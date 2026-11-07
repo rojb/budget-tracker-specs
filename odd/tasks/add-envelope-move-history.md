@@ -36,7 +36,7 @@ Reported by the user during manual testing. Today a move only adjusts two assign
 - [x] T1 Specs: proposal → specs → design → tasks (delegated writer) (specs 2147e81, bcedd6e, 2c84ac6, 36f2326)
 - [x] T2 Contract + back + client + front, one commit per task (specs 3fce9f7; back fe8003f, 71f86e3, c7e7df8; front e841aa9, 451852a)
 - [x] T3 Verify, delegated (back main merged as c940517; migration run, revert, run; device 22 of both envelopes, 10/14 unaffected; specs 44ba7f9). Device run used the side-by-side debug package `.uxcheck` because the installed app has another debug signature. Not run after the merge: oasdiff drift (tool missing), 409 and concurrency re-checks.
-- [ ] T4 Merge (specs first); archive; CI; production rollout. RDD is off, so no native review.
+- [x] T4 Merged (specs d0e4d1d, back 04be5ed, front 5c5632e); AddEnvelopeMoves applied on Neon before the code; `vercel --prod` (dpl_CfKHvQAzx9GdvmrQR4Ah1KYfNRP3); archived as 2026-11-06-add-envelope-move-history. Back CI green including contract-drift. RDD is off, so no native review; contract review by the second developer is post-merge, by user decision.
 
 ## Progress
 - RRG-59 created; Linear already Done by user decision.
@@ -47,4 +47,4 @@ Reported by the user during manual testing. Today a move only adjusts two assign
 - safe-adb.sh was lost with its old scratchpad: recreate it before any device input.
 
 ## Next step
-Ask the user about the production rollout (T4): merge, push, Neon migration, then `vercel --prod`.
+None: closed. Authenticated production smoke test of the envelope detail is still unverified.
