@@ -262,6 +262,7 @@ Página `Componentes` en `design/app.op` (generada por `design/build-components.
 | `IconButton` | White · Black · Lavender · Chartreuse · Soft · Glass · Danger | Encabezados, acciones |
 | `Button` | Primary · Secondary | Guardar, Entrar, Crear sobre |
 | `Chip` | Default · Selected · DefaultIcon | Filtros, montos rápidos |
+| `ChipRow` | Fits · Overflows | Fila de `Chip`s con scroll horizontal, 20 dp de relleno al final y degradé en el borde derecho mientras queden chips fuera de vista (02, 04) |
 | `AmountCapsule` | Default (símbolo de moneda overridable, p. ej. "US$") | Nuevo movimiento, Asignar, 33 Plan en dólares |
 | `SaveBar` | Default · Disabled | Flujos de alta y edición |
 | `Toggle` | GastoActive · IngresoActive | Nuevo movimiento |
