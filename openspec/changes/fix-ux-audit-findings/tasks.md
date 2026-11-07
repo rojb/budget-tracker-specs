@@ -99,25 +99,25 @@ story and is flagged for review by the other developer after merge (docs/COLABOR
 
 ### Visual and scaling work (screens)
 
-- [ ] 2.13 22 (V-04, V-06): the figures card with Disponible emphasized (34 sp, `ink`, middle),
+- [x] 2.13 22 (V-04, V-06): the figures card with Disponible emphasized (34 sp, `ink`, middle),
   Asignado and Gastado secondary, `FittedBox(scaleDown)` per figure and 12 dp gutters; the move row
   passes `titleMaxLines: 1`. Forecast 65 lines. Verify `flutter analyze` in the app; on the device
   22 of Supermercado shows the new hierarchy and a move to an envelope with a long name keeps the row
-  as tall as an expense row, next to `design/screens/22-detalle-de-sobre.png`.
-- [ ] 2.14 Tab lists (V-08): move `FadedScroll` to `lib/features/common/`, wrap the lists of 01, 02,
+  as tall as an expense row, next to `design/screens/22-detalle-de-sobre.png`. (front 560afcf; `flutter analyze` clean in the app; the figures card of 22 is Asignado, Disponible (34 sp, `ink`, middle, flex 13 against 10) and Gastado (24 sp, `inkMuted` kept), 12 dp between columns, a `FittedBox(scaleDown)` per figure and per label; `envelopeMoveRow` passes `titleMaxLines: 1`; device and side-by-side checks NOT run in this slice (no adb) and PENDING for task 3.1; the device verify items are left open, not observed (pending: hierarchy of 22 for Supermercado and a move to an envelope with a long name as tall as an expense row))
+- [x] 2.14 Tab lists (V-08): move `FadedScroll` to `lib/features/common/`, wrap the lists of 01, 02,
   10, 13 and 17 and raise their bottom padding to 32 dp. Forecast 40 lines. Verify `flutter analyze`
   in the app; on the device the last row of each list scrolls fully above the fade and the nav, next to
-  `design/screens/10-movimientos.png`, `13-cuentas.png` and `14-detalle-de-cuenta.png`.
-- [ ] 2.15 17 (V-12): `ReportsController` marks months without movements and the page passes
+  `design/screens/10-movimientos.png`, `13-cuentas.png` and `14-detalle-de-cuenta.png`. (front c280a94; `flutter analyze` clean in the app; `FadedScroll` moved with `git mv` to `lib/features/common/` (the imports of 46 and the template page updated), wraps the `ListView` of 01, 02, 10, 13 and 17 inside their `RefreshIndicator` and their bottom padding is 32 dp (the fade covers the last 12% of the list, so whether 32 dp clears it on the phone is for the device pass); device and side-by-side checks NOT run in this slice (no adb) and PENDING for task 3.1; the device verify items are left open, not observed (pending: last row of each list above the fade and the nav))
+- [x] 2.15 17 (V-12): `ReportsController` marks months without movements and the page passes
   `hasData`. Forecast 30 lines. Verify `flutter analyze` in the app; on the device 17 with a six-month
   range shows ticks for the empty months and bars for the others, tapping a bar still selects it, next
-  to `design/screens/17-reportes.png`.
-- [ ] 2.16 Text scaling sweep: `UiFieldRow` and `UiChip` use a minimum height instead of a fixed one
+  to `design/screens/17-reportes.png`. (front 25dc907; `flutter analyze` clean in the app; `ReportsController.hasData(month)` is false for a month with no value in the current tab (net worth: no balance and no movement) and 17 passes it as `hasData`, tapping a bar is unchanged; the API gives no movement count, so "without movements" is read from the per-tab figures; device and side-by-side checks NOT run in this slice (no adb) and PENDING for task 3.1; the device verify items are left open, not observed (pending: six-month range with ticks for empty months))
+- [x] 2.16 Text scaling sweep: `UiFieldRow` and `UiChip` use a minimum height instead of a fixed one
   (this touches two shared `packages/ui` components, flagged for post-merge review), plus the
   figures that could overflow in 01, 24 and 31; Widgetbook use cases for 22, 24 and 31 at text
   scales 1.3 and 2.0. Forecast 70 lines. Verify `flutter analyze` in the app, `packages/ui` and
   `widgetbook/`; in Widgetbook the three screens at 1.3 and 2.0 show no clipped text or overflow
-  stripe and a reachable `SaveBar`; at scale 1.0 they are pixel-equal to before.
+  stripe and a reachable `SaveBar`; at scale 1.0 they are pixel-equal to before. (front ee32212; `flutter analyze` clean in the app and `packages/ui`, and in `widgetbook/` before the commit; `UiFieldRow` uses a 48 dp minimum height with a wrapping value, `UiChip` a minimum height and a label that scales down in a narrow slot (this also covers a long cover amount in the quick-amount slots of 24); the figures of 01, 24 and 31 were reviewed and already scale (capsules in `FittedBox`, joined card) so no screen code changed; new Widgetbook component `TextScale` with 22, 24 and 31 at x1.0, x1.3 and x2.0 built from `packages/ui` widgets (the screens themselves are not in Widgetbook); the stories compile but were not opened, so no clipped text or overflow stripe was checked and pixel equality at x1.0 is not observed; flagged for post-merge review (two shared components); device and side-by-side checks NOT run in this slice (no adb) and PENDING for task 3.1; the device verify items are left open, not observed (pending: the three stories at 1.3 and 2.0 and x1.0 against before))
 
 ## 3. Verification
 
