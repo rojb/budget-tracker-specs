@@ -27,10 +27,12 @@ The user is starting to use the app against production. Reports: `odd/ux-audit/`
 - About 400 authored changed lines per task is advisory only.
 
 ## Delivery
-Forecast above 400 lines. Strategy: ask-on-risk; chain strategy pending the user's answer.
+Forecast about 980 lines. Strategy: ask-on-risk, chain strategy stacked-to-main (user decision
+2026-11-06): each slice merges to main and is pushed when ready, same for RRG-85.
+Slices: A packages/ui (1.1, 2.1-2.4), B flows (2.5-2.8), C flows (2.9-2.12), D visual (2.13-2.16).
 
 ## Tasks
-- [ ] T1 OpenSpec proposal, specs, design, tasks. Route: delegated (preparation trigger, 4+ files).
+- [x] T1 OpenSpec proposal, specs, design, tasks. Route: delegated (preparation trigger, 4+ files). (specs c524261, 3c46377, 2371f1f, d86ca6c, bc84eb5; strict validate passes)
 - [ ] T2 Implementation by task from tasks.md. Route: delegated, one writer (2+ non-trivial files).
 - [ ] T3 Verify: flutter analyze, device against renders.
 - [ ] T4 Merge, archive, CI, new production APK.
